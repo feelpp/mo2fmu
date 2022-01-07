@@ -9,6 +9,7 @@ import spdlog as spd
 
 @click.command()
 @click.argument('mo', type=str, nargs=1)
+@click.argument('outdir', type=click.Path(), nargs=1)
 @click.option('--fmumodelname', default=None, type=str, help="change the modelname of the fmu, by default use the modelical file stem")
 @click.option('--load', default=None, multiple=True, help='load one or more modelica packages.')
 @click.option('--type', default="all",  type=click.Choice(['all', 'cs', "me", "csSolver"]), help='The fmi types cs, me, all.')
@@ -18,11 +19,11 @@ import spdlog as spd
 @click.option('--dymolaegg', default="Modelica/Library/python_interface/dymola.egg", type=click.Path(), help='path to dymola egg file relative to dymola root path.')
 @click.option('-v', '--verbose', is_flag=True, help='verbose mode.')
 @click.option('-f', '--force', is_flag=True, help='force fmu generation even if file exists.')
-def mo2fmu(mo, fmumodelname, load, type, version, dymola, dymolapath, dymolaegg, verbose, force):
+def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dymolaegg, verbose, force):
     """
     convert a .mo file into a .fmu
 
-    mo2fmu -v foo.mo 
+    mo2fmu -v foo.mo .
     """
     logger = spd.ConsoleLogger('Logger', False, True, True)
     has_dymola=False
@@ -56,12 +57,12 @@ def mo2fmu(mo, fmumodelname, load, type, version, dymola, dymolapath, dymolaegg,
         if verbose:
             logger.info("convert {} to {}.fmu".format(mo, fmumodelname))
 
-        if Path(fmumodelname+'.fmu').is_file() and force:
+        if (Path(outdir)/Path(fmumodelname+'.fmu')).is_file() and force:
             logger.warn(
-                "{}.fmu exists, dymola will overwrite it".format(fmumodelname))
-        elif Path(fmumodelname+'.fmu').is_file():
+                "{}.fmu exists, dymola will overwrite it".format(Path(outdir)/fmumodelname))
+        elif (Path(outdir)/Path(fmumodelname+'.fmu')).is_file():
             logger.warn(
-                "{}.fmu exists, dymola will not overwrite it, use `--force` or `-f` to overwrite it.".format(fmumodelname))
+                "{}.fmu exists, dymola will not overwrite it, use `--force` or `-f` to overwrite it.".format(Path(outdir)/fmumodelname))
             return
 
         # Instantiate the Dymola interface and start Dymola
@@ -74,6 +75,8 @@ def mo2fmu(mo, fmumodelname, load, type, version, dymola, dymolapath, dymolaegg,
         dymola.openModel(mo, changeDirectory=False)
         result = dymola.translateModelFMU(
             Path(mo).stem, modelName=fmumodelname, fmiVersion="2", fmiType=type)
+        Path(fmumodelname+'.fmu').rename(Path(outdir) /
+                                         Path(fmumodelname+'.fmu').name)
         logger.info("translateModelFMU {}.mo -> {}.fmu".format(Path(mo).stem, fmumodelname))
         if not result:
             log = dymola.getLastErrorLog()
@@ -82,7 +85,7 @@ def mo2fmu(mo, fmumodelname, load, type, version, dymola, dymolapath, dymolaegg,
             return
         if verbose:
             logger.info("{} file successfully generated".format(fmumodelname))
-        assert(Path(fmumodelname+'.fmu').is_file())
+        assert((Path(outdir)/Path(fmumodelname+'.fmu')).is_file())
     except DymolaException as ex:
         logger.error(str(ex))
         vdisplay.stop()

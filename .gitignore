@@ -5,3 +5,8 @@ mo2fmu.egg-info/requires.txt
 mo2fmu.egg-info/SOURCES.txt
 mo2fmu.egg-info/top_level.txt
 __pycache__/
+.FMUOutput/
+ds*
+status.
+request.
+mo2fmu_feelpp.egg-info/
