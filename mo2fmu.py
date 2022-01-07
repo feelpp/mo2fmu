@@ -22,16 +22,21 @@ def mo2fmu(mo, fmumodelname, type, version, dymola, dymolapath, dymolaegg, verbo
     convert a .mo file into a .fmu
     """
     logger = spd.ConsoleLogger('Logger', False, True, True)
+    has_dymola=False
     # Changement du PYTHONPATH
     try:
-        sys.path.append(Path(dymola) / Path(dymolaegg))
+        sys.path.append(str(Path(dymola) / Path(dymolaegg)))
+        logger.info("add {} to sys path".format(Path(dymola) / Path(dymolaegg)))
+        if not (Path(dymola) / Path(dymolaegg)).is_file():
+            logger.error("dymola egg {} does not exist".format(
+                Path(dymola) / Path(dymolaegg)))
         import dymola
         from dymola.dymola_interface import DymolaInterface
         from dymola.dymola_exception import DymolaException
         has_dymola = True
     except ImportError as e:
         logger.info(
-            'dymola module is not available, has_dymola: {}'.format(has_dymola))
+            "dymola module is not available, has_dymola: {}".format(has_dymola))
         pass  # module doesn't exist, deal with it.
     if not has_dymola:
         logger.error("dymola is not available, mo2fmu failed")
@@ -60,6 +65,7 @@ def mo2fmu(mo, fmumodelname, type, version, dymola, dymolapath, dymolaegg, verbo
         dymola.openModel(mo, changeDirectory=False)
         result = dymola.translateModelFMU(
             Path(mo).stem, modelName=fmumodelname, fmiVersion="2", fmiType=type)
+        logger.info("translateModelFMU {}.mo -> {}.fmu".format(Path(mo).stem, fmumodelname))
         if not result:
             log = dymola.getLastErrorLog()
             logger.error("Simulation failed. Below is the translation log.")
