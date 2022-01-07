@@ -1,5 +1,6 @@
 # mo2fmu
-Modelica to FMU converter
+
+Modelica to FMU converter based on dymola
 
 ## Installation
 
