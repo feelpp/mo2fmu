@@ -2,6 +2,7 @@ import platform
 import sys
 import os
 from pathlib import Path, PurePosixPath
+import shutil
 from xvfbwrapper import Xvfb
 import click
 import spdlog as spd
@@ -75,9 +76,8 @@ def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dy
         dymola.openModel(mo, changeDirectory=False)
         result = dymola.translateModelFMU(
             Path(mo).stem, modelName=fmumodelname, fmiVersion="2", fmiType=type)
-        Path(fmumodelname+'.fmu').rename(Path(outdir) /
-                                         Path(fmumodelname+'.fmu').name)
-        logger.info("translateModelFMU {}.mo -> {}.fmu".format(Path(mo).stem, fmumodelname))
+        dest=shutil.move(str(Path(fmumodelname+'.fmu'), str(Path(outdir)/Path(fmumodelname+'.fmu')))
+        logger.info("translateModelFMU {}.mo -> {}/{}.fmu".format(Path(mo).stem, dest, fmumodelname))
         if not result:
             log = dymola.getLastErrorLog()
             logger.error("Simulation failed. Below is the translation log.")
