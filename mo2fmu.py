@@ -76,7 +76,9 @@ def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dy
         dymola.openModel(mo, changeDirectory=False)
         result = dymola.translateModelFMU(
             Path(mo).stem, modelName=fmumodelname, fmiVersion="2", fmiType=type)
-        dest=shutil.move(str(Path(fmumodelname+'.fmu')), str(Path(outdir)))
+        if (Path(outdir)/Path(fmumodelname+'.fmu')).is_file() and force:
+            os.remove(Path(outdir)/Path(fmumodelname+'.fmu'))
+        dest = shutil.move(str(Path(fmumodelname+'.fmu')), str(Path(outdir)  ))
         logger.info("translateModelFMU {}.mo -> {}/{}.fmu".format(Path(mo).stem, dest, fmumodelname))
         if not result:
             log = dymola.getLastErrorLog()
