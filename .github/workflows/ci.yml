@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - 'develop'
+
+jobs:
+#docs:
+#  runs-on: ubuntu-latest
+#  if: "!contains(github.event.head_commit.message, 'doc skip')"
+#  steps:
+#  - uses: buildkite/trigger-pipeline-action@v1.2.0
+#    env:
+#      BUILDKITE_API_ACCESS_TOKEN: ${{ secrets.BUILDKITE_API_ACCESS_TOKEN }}
+#      PIPELINE: "feelpp/cemosis-docs"
+#      COMMIT: "HEAD"
+#      BRANCH: "master"
+#      MESSAGE: ":github: Triggered from a GitHub Action by swimmer Project"
+  build:
+    runs-on: self-ubuntu-20.04
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    name: Check Build, Install, Run
+    container: ghcr.io/feelpp/dymola:2021
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        lfs: true
+    - name: Build mo2fmu
+      run: |
+        pip3 install click spdlog
+        pip3 install --editable mo2fmu
+        mo2fmu -v ode_exp.mo .
+
+  deliver:
+    runs-on: self-ubuntu-20.04
+    needs: build
+    # needs: check
+    name: Docker Build, Tag, Push
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        lfs: true
+    -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/feelpp/mo2fmu
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+    -
+      name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+    -
+      name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1        
+    - 
+      name: Login to GitHub Container Registry
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v1 
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.CR_PAT }}
+    - 
+      name: Build container image
+      uses: docker/build-push-action@v2
+      with: 
+        push: ${{ github.event_name != 'pull_request' }}
+        context: artifacts
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        file: ./Dockerfile
