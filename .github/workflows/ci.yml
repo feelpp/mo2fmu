@@ -28,6 +28,7 @@ jobs:
     name: Check Build, Install, Run
     container: ghcr.io/feelpp/dymola:2021
     steps:
+    - run: /usr/bin/git --version
     - uses: actions/checkout@v2
     - name: Build mo2fmu
       run: |
