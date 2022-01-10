@@ -22,7 +22,7 @@ import spdlog as spd
 @click.option('-f', '--force', is_flag=True, help='force fmu generation even if file exists.')
 def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dymolaegg, verbose, force):
     """
-    convert a .mo file into a .fmu
+    mo2fmu converts a .mo file into a .fmu
 
     mo2fmu -v foo.mo .
     """

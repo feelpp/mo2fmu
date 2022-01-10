@@ -33,7 +33,7 @@ jobs:
     - name: Build mo2fmu
       run: |
         pip3 install click spdlog
-        pip3 install --editable mo2fmu
+        pip3 install --editable .
         mo2fmu -v ode_exp.mo .
 
   deliver:
