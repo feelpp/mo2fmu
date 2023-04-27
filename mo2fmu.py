@@ -29,6 +29,9 @@ def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dy
     logger = spd.ConsoleLogger('Logger', False, True, True)
     has_dymola=False
     # Changement du PYTHONPATH
+    if Path(outdir) == Path(os.getcwd()):
+        logger.error('the destination directory should be different from {}'.format(os.getcwd()))
+        return False
     try:
         sys.path.append(str(Path(dymola) / Path(dymolaegg)))
         logger.info("add {} to sys path".format(Path(dymola) / Path(dymolaegg)))
