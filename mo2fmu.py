@@ -68,6 +68,15 @@ def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dy
 
         # Instantiate the Dymola interface and start Dymola
         dymola = DymolaInterface(dymolapath=dymolapath, showwindow=False)
+        # Get the name of the package where the model belongs
+        with open(mo, "r") as f:
+            lines = f.readlines()
+        for line in lines:
+            if line.strip().startswith('within '):
+                packageName = line.split(' ')[1][:-2]
+            else:
+                pass
+        moModel = packageName+"."+Path(mo).stem
         if load:
             for package in load:
                 if verbose:
@@ -75,11 +84,11 @@ def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dy
                 dymola.openModel(package, changeDirectory=False)
         dymola.openModel(mo, changeDirectory=False)
         result = dymola.translateModelFMU(
-            Path(mo).stem, modelName=fmumodelname, fmiVersion="2", fmiType=type)
+            moModel, modelName=fmumodelname, fmiVersion="2", fmiType=type)
         if (Path(outdir)/Path(fmumodelname+'.fmu')).is_file() and force:
             os.remove(Path(outdir)/Path(fmumodelname+'.fmu'))
         dest = shutil.move(str(Path(fmumodelname+'.fmu')), str(Path(outdir)  ))
-        logger.info("translateModelFMU {}.mo -> {}/{}.fmu".format(Path(mo).stem, dest, fmumodelname))
+        logger.info("translateModelFMU {}.mo -> {}".format(Path(mo).stem, dest))
         if not result:
             log = dymola.getLastErrorLog()
             logger.error("Simulation failed. Below is the translation log.")
