@@ -16,8 +16,8 @@ import spdlog as spd
 @click.option('--flags', default=None, multiple=True, help='One or more Dymola flags for FMU translation.')
 @click.option('--type', default="all",  type=click.Choice(['all', 'cs', "me", "csSolver"]), help='The fmi types cs, me, all.')
 @click.option('--version', default="2", help='The fmi version.')
-@click.option('--dymola', default="/opt/dymola-2021-x86_64/", type=click.Path(), help='path to dymola executable.')
-@click.option('--dymolapath', default="/usr/local/bin/dymola-2021-x86_64", type=click.Path(), help='path to dymola executable.')
+@click.option('--dymola', default="/opt/dymola-2023-x86_64/", type=click.Path(), help='path to dymola executable.')
+@click.option('--dymolapath', default="/usr/local/bin/dymola-2023-x86_64", type=click.Path(), help='path to dymola executable.')
 @click.option('--dymolaegg', default="Modelica/Library/python_interface/dymola.egg", type=click.Path(), help='path to dymola egg file relative to dymola root path.')
 @click.option('-v', '--verbose', is_flag=True, help='verbose mode.')
 @click.option('-f', '--force', is_flag=True, help='force fmu generation even if file exists.')
@@ -30,6 +30,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
     logger = spd.ConsoleLogger('Logger', False, True, True)
     has_dymola=False
     # Changement du PYTHONPATH
+    
     if Path(outdir) == Path(os.getcwd()):
         logger.error('the destination directory should be different from {}'.format(os.getcwd()))
         return False
@@ -71,6 +72,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
             return
         elif (Path(outdir)).is_dir() is False:
             os.mkdir(outdir)
+            
 
         # Instantiate the Dymola interface and start Dymola
         dymola = DymolaInterface(dymolapath=dymolapath, showwindow=False)
