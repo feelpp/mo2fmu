@@ -68,6 +68,8 @@ def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dy
             logger.warn(
                 "{}.fmu exists, dymola will not overwrite it, use `--force` or `-f` to overwrite it.".format(Path(outdir)/fmumodelname))
             return
+        elif (Path(outdir)).is_dir() is False:
+            os.mkdir(outdir)
 
         # Instantiate the Dymola interface and start Dymola
         dymola = DymolaInterface(dymolapath=dymolapath, showwindow=False)
