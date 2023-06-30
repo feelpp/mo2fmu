@@ -77,6 +77,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
         # Instantiate the Dymola interface and start Dymola
         dymola = DymolaInterface(dymolapath=dymolapath, showwindow=False)
         # Get the name of the package where the model belongs
+        packageName=""
         with open(mo, "r") as f:
             lines = f.readlines()
         for line in lines:
@@ -84,7 +85,11 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
                 packageName = line.split(' ')[1][:-2]
             else:
                 pass
-        moModel = packageName+"."+Path(mo).stem
+        if packageName != "":
+            moModel = packageName+"."+Path(mo).stem
+        else:
+            moModel = Path(mo).stem
+
         if load:
             for package in load:
                 if verbose:
@@ -94,7 +99,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
         for flag in flags:
             if verbose:
                 logger.info("Flag {}".format(flag))
-            dymola.ExecuteCommand(flag) 
+            dymola.ExecuteCommand(flag)
 
         dymola.openModel(mo, changeDirectory=False)
         result = dymola.translateModelFMU(
