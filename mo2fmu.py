@@ -29,8 +29,8 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
     """
     logger = spd.ConsoleLogger('Logger', False, True, True)
     has_dymola=False
-    # Changement du PYTHONPATH
-    
+    # Changing the PYTHONPATH
+
     if Path(outdir) == Path(os.getcwd()):
         logger.error('the destination directory should be different from {}'.format(os.getcwd()))
         return False
@@ -58,7 +58,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
 
     dymola = None
     try:
-        
+
         fmumodelname = Path(fmumodelname if fmumodelname else mo).stem
         if verbose:
             logger.info("convert {} to {}.fmu".format(mo, fmumodelname))
@@ -72,7 +72,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
             return
         elif (Path(outdir)).is_dir() is False:
             os.mkdir(outdir)
-            
+
 
         # Instantiate the Dymola interface and start Dymola
         dymola = DymolaInterface(dymolapath=dymolapath, showwindow=False)
@@ -95,7 +95,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
                 if verbose:
                     logger.info("load modelica package {}".format(package))
                 dymola.openModel(package, changeDirectory=False)
-                
+
         for flag in flags:
             if verbose:
                 logger.info("Flag {}".format(flag))
