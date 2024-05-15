@@ -39,6 +39,8 @@ def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dy
         from dymola.dymola_interface import DymolaInterface
         from dymola.dymola_exception import DymolaException
         has_dymola = True
+        logger.info("dymola is available in {}/{}".format(
+            dymola, dymolaegg) )
     except ImportError as e:
         logger.info(
             "dymola module is not available, has_dymola: {}".format(has_dymola))
@@ -68,6 +70,8 @@ def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dy
 
         # Instantiate the Dymola interface and start Dymola
         dymola = DymolaInterface(dymolapath=dymolapath, showwindow=False)
+        dymola.ExecuteCommand("Advanced.EnableCodeExport = false;")
+        dymola.ExecuteCommand("Advanced.CompileWith64=2;")
         if load:
             for package in load:
                 if verbose:
@@ -76,6 +80,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, type, version, dymola, dymolapath, dy
         dymola.openModel(mo, changeDirectory=False)
         result = dymola.translateModelFMU(
             Path(mo).stem, modelName=fmumodelname, fmiVersion="2", fmiType=type)
+        print("result:",result)
         if (Path(outdir)/Path(fmumodelname+'.fmu')).is_file() and force:
             os.remove(Path(outdir)/Path(fmumodelname+'.fmu'))
         dest = shutil.move(str(Path(fmumodelname+'.fmu')), str(Path(outdir)  ))

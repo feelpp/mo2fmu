@@ -9,6 +9,16 @@ on:
   pull_request:
     branches:
       - 'develop'
+  workflow_dispatch:
+    inputs:
+      build:
+        description: 'Build the project'
+        required: false
+        default: 'true'
+      deliver:
+        description: 'Build and deliver the project'
+        required: false
+        default: 'false'
 
 jobs:
 #docs:
@@ -24,12 +34,12 @@ jobs:
 #      MESSAGE: ":github: Triggered from a GitHub Action by swimmer Project"
   build:
     runs-on: self-ubuntu-20.04
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    if: "!contains(github.event.head_commit.message, 'ci skip') || ${{ inputs.build }} == 'true'"
     name: Check Build, Install, Run
     container: ghcr.io/feelpp/dymola:2021
     steps:
     - run: /usr/bin/git --version
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Build mo2fmu
       run: |
         pip3 install click spdlog
@@ -37,19 +47,20 @@ jobs:
         mo2fmu -v ode_exp.mo .
 
   deliver:
-    runs-on: self-ubuntu-20.04
+    runs-on: self-ubuntu-22.04
     needs: build
+    if: "${{ inputs.deliver }} == 'true'"
     # needs: check
     name: Docker Build, Tag, Push
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         lfs: true
     -
         name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
           images: ghcr.io/feelpp/mo2fmu
           tags: |
@@ -59,21 +70,21 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
     -
       name: Set up QEMU
-      uses: docker/setup-qemu-action@v1
+      uses: docker/setup-qemu-action@v3
     -
       name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1        
+      uses: docker/setup-buildx-action@v3
     - 
       name: Login to GitHub Container Registry
       if: github.event_name != 'pull_request'
-      uses: docker/login-action@v1 
+      uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.CR_PAT }}
     - 
       name: Build container image
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v3
       with: 
         push: ${{ github.event_name != 'pull_request' }}
         context: artifacts
