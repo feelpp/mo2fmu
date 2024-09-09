@@ -44,6 +44,8 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
         from dymola.dymola_interface import DymolaInterface
         from dymola.dymola_exception import DymolaException
         has_dymola = True
+        logger.info("dymola is available in {}/{}".format(
+            dymola, dymolaegg) )
     except ImportError as e:
         logger.info(
             "dymola module is not available, has_dymola: {}".format(has_dymola))
@@ -76,6 +78,9 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
 
         # Instantiate the Dymola interface and start Dymola
         dymola = DymolaInterface(dymolapath=dymolapath, showwindow=False)
+        dymola.ExecuteCommand("Advanced.EnableCodeExport = false;")
+        dymola.ExecuteCommand("Advanced.CompileWith64=2;")     
+
         # Get the name of the package where the model belongs
         packageName=""
         with open(mo, "r") as f:
