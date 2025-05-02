@@ -8,19 +8,6 @@ import click
 import spdlog as spd
 
 
-@click.command()
-@click.argument('mo', type=str, nargs=1)
-@click.argument('outdir', type=click.Path(), nargs=1)
-@click.option('--fmumodelname', default=None, type=str, help="change the modelname of the fmu, by default use the modelical file stem")
-@click.option('--load', default=None, multiple=True, help='load one or more modelica packages.')
-@click.option('--flags', default=None, multiple=True, help='One or more Dymola flags for FMU translation.')
-@click.option('--type', default="all",  type=click.Choice(['all', 'cs', "me", "csSolver"]), help='The fmi types cs, me, all.')
-@click.option('--version', default="2", help='The fmi version.')
-@click.option('--dymola', default="/opt/dymola-2023-x86_64/", type=click.Path(), help='path to dymola executable.')
-@click.option('--dymolapath', default="/usr/local/bin/dymola-2023-x86_64", type=click.Path(), help='path to dymola executable.')
-@click.option('--dymolaegg', default="Modelica/Library/python_interface/dymola.egg", type=click.Path(), help='path to dymola egg file relative to dymola root path.')
-@click.option('-v', '--verbose', is_flag=True, help='verbose mode.')
-@click.option('-f', '--force', is_flag=True, help='force fmu generation even if file exists.')
 def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force):
     """
     mo2fmu converts a .mo file into a .fmu
@@ -79,7 +66,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
         # Instantiate the Dymola interface and start Dymola
         dymola = DymolaInterface(dymolapath=dymolapath, showwindow=False)
         dymola.ExecuteCommand("Advanced.EnableCodeExport = false;")
-        dymola.ExecuteCommand("Advanced.CompileWith64=2;")     
+        dymola.ExecuteCommand("Advanced.CompileWith64=2;")
 
         # Get the name of the package where the model belongs
         packageName=""
@@ -130,3 +117,20 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
             dymola = None
             vdisplay.stop()
     # return modelpath+fmufilname
+
+
+@click.command()
+@click.argument('mo', type=str, nargs=1)
+@click.argument('outdir', type=click.Path(), nargs=1)
+@click.option('--fmumodelname', default=None, type=str, help="change the modelname of the fmu, by default use the modelical file stem")
+@click.option('--load', default=None, multiple=True, help='load one or more modelica packages.')
+@click.option('--flags', default=None, multiple=True, help='One or more Dymola flags for FMU translation.')
+@click.option('--type', default="all",  type=click.Choice(['all', 'cs', "me", "csSolver"]), help='The fmi types cs, me, all.')
+@click.option('--version', default="2", help='The fmi version.')
+@click.option('--dymola', default="/opt/dymola-2023-x86_64/", type=click.Path(), help='path to dymola executable.')
+@click.option('--dymolapath', default="/usr/local/bin/dymola-2023-x86_64", type=click.Path(), help='path to dymola executable.')
+@click.option('--dymolaegg', default="Modelica/Library/python_interface/dymola.egg", type=click.Path(), help='path to dymola egg file relative to dymola root path.')
+@click.option('-v', '--verbose', is_flag=True, help='verbose mode.')
+@click.option('-f', '--force', is_flag=True, help='force fmu generation even if file exists.')
+def mo2fmuCLI(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force):
+    mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force)
