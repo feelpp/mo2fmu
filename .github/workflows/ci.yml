@@ -6,19 +6,6 @@ on:
       - '**'
     tags:
       - 'v*'
-  pull_request:
-    branches:
-      - 'develop'
-  workflow_dispatch:
-    inputs:
-      build:
-        description: 'Build the project'
-        required: false
-        default: 'true'
-      deliver:
-        description: 'Build and deliver the project'
-        required: false
-        default: 'false'
 
 jobs:
 
