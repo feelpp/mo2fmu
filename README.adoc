@@ -1,0 +1,117 @@
+:feelpp: Feel++
+:cpp: C++
+:project: feelpp-project
+
+= {feelpp} Template Project
+:author: Christophe Prud’homme
+:email: <https://github.com/prudhomm>
+:revdate: 2025-05-01
+:doctype: book
+:toc:
+:toclevels: 2
+:icons: font
+:source-highlighter: rouge
+
+image::https://zenodo.org/badge/DOI/10.5281/zenodo.12762669.svg[DOI, link="https://doi.org/10.5281/zenodo.12762669"]
+image::https://img.shields.io/github/v/release/feelpp/feelpp-project[GitHub Release]
+image::https://github.com/feelpp/feelpp-project/workflows/CI/badge.svg[CI]
+
+A template repository to kickstart your finite-element applications with Feel++.
+
+== Table of Contents
+
+* <<features,Features>>
+* <<quick-start,Quick Start>>
+* <<building,Building>>
+* <<ci,Continuous Integration>>
+* <<versioning,Versioning & Release>>
+* <<contributing,Contributing>>
+* <<license,License>>
+
+== Features
+
+* **C++** example apps using Feel++ and its toolboxes (located in `src/`).
+* **Python** Jupyter notebooks under `docs/notebooks/` for interactive demos.
+* **Documentation** authored in AsciiDoc and published with Antora (`docs/`).
+* **Docker** setup for reproducible development and deployment.
+* **CI** via GitHub Actions: C++ tests, Python wheel builds, docs site.
+
+== Quick Start
+
+=== Prerequisites
+
+* CMake ≥ 3.21  
+* A C++ compiler (GCC or Clang) with MPI support  
+* Python 3.8+ and `pip`  
+* Docker (optional, for container builds)
+
+=== Clone & Rename
+
+If you used this as a template, rename the project metadata:
+[source,bash]
+----
+./rename.sh your-project-name
+----
+
+NOTE: After renaming, verify URLs in `docs/site.yml` and `docs/package.json`.
+
+== Building
+
+=== CMake Presets
+
+Create **CMakePresets.json** in your project root or update the one provided:
+
+[source,bash]
+----
+cmake --preset default
+cmake --build --preset default
+cmake --build --preset default --target install
+----
+
+`build/default` will contain the build artifacts and the build directory.
+
+== Continuous Integration
+
+Our GitHub Actions workflow (`.github/workflows/ci.yml`) includes:
+
+* build_wheel: Python wheel compilation and artifact upload.
+* docs: Builds the Antora site, deploys to GitHub Pages on master.
+* build_code: CMake build, tests with ctest --preset default, packaging.
+* deliver: Docker image build & push to GHCR.
+* release: On tags vX.Y.Z, publishes binaries, wheels, datasets, and creates a GitHub release.
+
+== Versioning & Release
+
+Project version is centrally defined in:
+
+* CMakeLists.txt
+* docs/antora.yml
+* docs/package.json
+
+=== Release Process
+
+.	Bump the version in the three files above.
+.	Commit with:
++
+ $ git commit -am "Release vX.Y.Z"
++
+. Tag and push:
++
+ $ git tag vX.Y.Z && git push --tags
++
+. GitHub Actions will build and publish artifacts automatically.
+
+== Contributing
+
+We welcome contributions! Please:
+
+* Fork the repository and create a feature branch.
+* Adhere to existing coding conventions; add C++ tests where appropriate.
+* Update documentation (docs/) for any new features.
+* Submit a pull request with a clear description of your changes.
+
+== License
+
+This project is licensed under the BSD 3-Clause License.
+See LICENSE for full details.
+
