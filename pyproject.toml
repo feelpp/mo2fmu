@@ -44,7 +44,7 @@ dev = [
 ]
 
 [project.scripts]
-mo2fmu = "feelpp.mo2fmu.mo2fmu:main_cli"
+mo2fmu = "feelpp.mo2fmu.mo2fmu:mo2fmuCLI"
 
 [tool.scikit-build]
 wheel.expand-macos-universal-tags = true
