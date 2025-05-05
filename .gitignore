@@ -11,3 +11,8 @@ status
 request
 
 mo2fmu_feelpp.egg-info/
+dist
+node_modules/
+**/__pycache__/
+.env
+.venv/
