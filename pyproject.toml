@@ -9,7 +9,7 @@ description = "Feel++ modelica to fmu converter package"
 readme = "README.md"
 authors = [
     { name = "Christophe Prud'homme", email = "christophe.prudhomme@cemosis.fr" },
-    { name = "Philippe Pinçon", email = "philippe.pincon@cemosis.fr" },
+    { name = "Philippe Pinçon", email = "philippe.pincon@cemosis.fr" }
 ]
 requires-python = ">=3.0"
 classifiers = [
