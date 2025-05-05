@@ -2,7 +2,7 @@
   "private": true,
   "name": "feelpp-mo2fmu",
   "description": "The mo2fmu documentation",
-  "version": "4.0.0",
+  "version": "0.1.0",
   "license": "AGPL-3.0",
   "author": "The Feel++ Team",
   "homepage": "https://github.com/feelpp/mo2fmu#readme",
