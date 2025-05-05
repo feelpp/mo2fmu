@@ -46,14 +46,12 @@ dev = [
 [project.scripts]
 mo2fmu = "feelpp.mo2fmu.mo2fmu:mo2fmuCLI"
 
-[tool.scikit-build]
-wheel.expand-macos-universal-tags = true
-wheel.packages = ["src/python/feelpp/"]
-build.verbose = true
-logging.level = "INFO"
-sdist.cmake = true
-sdist.include = ["README.md"]
-cmake.args = ["--preset", "default"]
+[tool.setuptools]
+package-dir = {"" = "src/python"}
+
+[tool.setuptools.packages.find]
+where = ["src/python"]
+namespaces = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
