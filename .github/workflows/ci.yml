@@ -73,17 +73,63 @@ jobs:
         with:
           name: artifacts-wheel-${{ matrix.os }}
           path: dist/*.whl
-#docs:
-#  runs-on: ubuntu-latest
-#  if: "!contains(github.event.head_commit.message, 'doc skip')"
-#  steps:
-#  - uses: buildkite/trigger-pipeline-action@v1.2.0
-#    env:
-#      BUILDKITE_API_ACCESS_TOKEN: ${{ secrets.BUILDKITE_API_ACCESS_TOKEN }}
-#      PIPELINE: "feelpp/cemosis-docs"
-#      COMMIT: "HEAD"
-#      BRANCH: "master"
-#      MESSAGE: ":github: Triggered from a GitHub Action by swimmer Project"
+
+  build_docs:
+    needs: build_wheel
+    runs-on: self-${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    name: Build & Deploy docs
+    if: "!contains(github.event.head_commit.message, 'skip docs')"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+          clean: true
+
+      - name: Install credentials
+        run: echo "https://$GITHUB_OAUTH:@github.com" > $HOME/.git-credentials
+        env:
+          GITHUB_OAUTH: ${{ secrets.CR_PAT_WORKFLOW }}
+
+      - name: Download Wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: artifacts-wheel-${{ matrix.os }}
+          path: dist/
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install Python deps
+        run: |
+          uv venv --system-site-packages
+          source .venv/bin/activate
+          uv pip install dist/*.whl
+
+      - name: Build Antora site
+        run: |
+          source .venv/bin/activate
+          npm install --verbose
+          npm run antora || true
+          npm run antora
+        env:
+          GIRDER_API_KEY: ${{ secrets.GIRDER }}
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-22.04'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: public
+
   # build:
   #   runs-on: self-ubuntu-22.04
   #   if: "!contains(github.event.head_commit.message, 'ci skip') || ${{ inputs.build }} == 'true'"
