@@ -117,8 +117,9 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
             dymola.close()
             dymola = None
             vdisplay.stop()
-    # return modelpath+fmufilname
 
+    spd.drop('Logger')
+    # return modelpath+fmufilname
 
 @click.command()
 @click.argument('mo', type=str, nargs=1)
