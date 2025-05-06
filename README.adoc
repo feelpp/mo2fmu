@@ -1,74 +1,49 @@
 :feelpp: Feel++
 :cpp: C++
-:project: feelpp-project
+:project: feelpp-mo2fmu
 
-= {feelpp} Template Project
+= {feelpp} mo2fmu converter
 :author: Christophe Prud’homme
-:email: <https://github.com/prudhomm>
-:revdate: 2025-05-01
+:email: <christophe.prudhomme@cemosis.fr>
+:revdate: 2025-05-06
 :doctype: book
 :toc:
 :toclevels: 2
 :icons: font
 :source-highlighter: rouge
 
-image::https://zenodo.org/badge/DOI/10.5281/zenodo.12762669.svg[DOI, link="https://doi.org/10.5281/zenodo.12762669"]
-image::https://img.shields.io/github/v/release/feelpp/feelpp-project[GitHub Release]
-image::https://github.com/feelpp/feelpp-project/workflows/CI/badge.svg[CI]
+Modelica to FMU converter based on dymola
 
-A template repository to kickstart your finite-element applications with Feel++.
+== Installation
 
-== Table of Contents
+```
+$ uv venv --system-site-packages
+$ source .venv/bin/activate
+$ uv pip install -r pyproject.toml --extra dev --extra test
+$ pipx run build
+$ uv pip install dist/*.whl
+```
 
-* <<features,Features>>
-* <<quick-start,Quick Start>>
-* <<building,Building>>
-* <<ci,Continuous Integration>>
-* <<versioning,Versioning & Release>>
-* <<contributing,Contributing>>
-* <<license,License>>
+== Usage
+```
+$ mo2fmu --help
+Usage: mo2fmu [OPTIONS] MO
 
-== Features
+  convert a .mo file into a .fmu
 
-* **C++** example apps using Feel++ and its toolboxes (located in `src/`).
-* **Python** Jupyter notebooks under `docs/notebooks/` for interactive demos.
-* **Documentation** authored in AsciiDoc and published with Antora (`docs/`).
-* **Docker** setup for reproducible development and deployment.
-* **CI** via GitHub Actions: C++ tests, Python wheel builds, docs site.
-
-== Quick Start
-
-=== Prerequisites
-
-* CMake ≥ 3.21  
-* A C++ compiler (GCC or Clang) with MPI support  
-* Python 3.8+ and `pip`  
-* Docker (optional, for container builds)
-
-=== Clone & Rename
-
-If you used this as a template, rename the project metadata:
-[source,bash]
-----
-./rename.sh your-project-name
-----
-
-NOTE: After renaming, verify URLs in `docs/site.yml` and `docs/package.json`.
-
-== Building
-
-=== CMake Presets
-
-Create **CMakePresets.json** in your project root or update the one provided:
-
-[source,bash]
-----
-cmake --preset default
-cmake --build --preset default
-cmake --build --preset default --target install
-----
-
-`build/default` will contain the build artifacts and the build directory.
+Options:
+  --fmumodelname TEXT          change the modelname of the fmu, by default use
+                               the modelical file stem
+  --type [all|cs|me|csSolver]  The fmi types cs, me, all.
+  --version TEXT               The fmi version.
+  --dymola PATH                path to dymola executable.
+  --dymolapath PATH            path to dymola executable.
+  --dymolaegg PATH             path to dymola egg file relative to dymola root
+                               path.
+  -v, --verbose                verbose mode.
+  -f, --force                  force fmu generation even if file exists.
+  --help                       Show this message and exit.
+```
 
 == Continuous Integration
 
@@ -76,7 +51,6 @@ Our GitHub Actions workflow (`.github/workflows/ci.yml`) includes:
 
 * build_wheel: Python wheel compilation and artifact upload.
 * docs: Builds the Antora site, deploys to GitHub Pages on master.
-* build_code: CMake build, tests with ctest --preset default, packaging.
 * deliver: Docker image build & push to GHCR.
 * release: On tags vX.Y.Z, publishes binaries, wheels, datasets, and creates a GitHub release.
 
@@ -84,34 +58,20 @@ Our GitHub Actions workflow (`.github/workflows/ci.yml`) includes:
 
 Project version is centrally defined in:
 
-* CMakeLists.txt
 * docs/antora.yml
 * docs/package.json
-
-=== Release Process
-
-.	Bump the version in the three files above.
-.	Commit with:
-+
- $ git commit -am "Release vX.Y.Z"
-+
-. Tag and push:
-+
- $ git tag vX.Y.Z && git push --tags
-+
-. GitHub Actions will build and publish artifacts automatically.
 
 == Contributing
 
 We welcome contributions! Please:
 
 * Fork the repository and create a feature branch.
-* Adhere to existing coding conventions; add C++ tests where appropriate.
+* Adhere to existing coding conventions; add python tests where appropriate.
 * Update documentation (docs/) for any new features.
 * Submit a pull request with a clear description of your changes.
 
 == License
 
-This project is licensed under the BSD 3-Clause License.
+This project is licensed under the MIT License.
 See LICENSE for full details.
 
