@@ -88,7 +88,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
                     logger.info("load modelica package {}".format(package))
                 dymola.openModel(package, changeDirectory=False)
 
-        if flag:
+        if flags:
             for flag in flags:
                 if verbose:
                     logger.info("Flag {}".format(flag))
