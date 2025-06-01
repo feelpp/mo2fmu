@@ -16,34 +16,59 @@ Modelica to FMU converter based on dymola
 
 == Installation
 
-```
-$ uv venv --system-site-packages
-$ source .venv/bin/activate
-$ uv pip install -r pyproject.toml --extra dev --extra test
-$ pipx run build
-$ uv pip install dist/*.whl
-```
+[source,console]
+----
+uv venv
+source .venv/bin/activate
+uv pip install -r pyproject.toml --extra dev --extra test
+uv pip install .
+----
 
-== Usage
-```
+== Usage in command line
+
+[source,console]
+----
 $ mo2fmu --help
-Usage: mo2fmu [OPTIONS] MO
-
-  convert a .mo file into a .fmu
+Usage: mo2fmu [OPTIONS] MO OUTDIR
 
 Options:
-  --fmumodelname TEXT          change the modelname of the fmu, by default use
-                               the modelical file stem
-  --type [all|cs|me|csSolver]  The fmi types cs, me, all.
-  --version TEXT               The fmi version.
-  --dymola PATH                path to dymola executable.
-  --dymolapath PATH            path to dymola executable.
-  --dymolaegg PATH             path to dymola egg file relative to dymola root
-                               path.
+  --fmumodelname TEXT          change the model name of the FMU (default: .mo
+                               file stem)
+  --load TEXT                  load one or more Modelica packages.
+  --flags TEXT                 one or more Dymola flags for FMU translation.
+  --type [all|cs|me|csSolver]  the FMI type: cs, me, all, or csSolver.
+  --version TEXT               the FMI version.
+  --dymola PATH                path to Dymola root.
+  --dymolapath PATH            path to Dymola executable.
+  --dymolaegg PATH             path to Dymola egg file, relative to Dymola
+                               root.
   -v, --verbose                verbose mode.
-  -f, --force                  force fmu generation even if file exists.
-  --help                       Show this message and exit.
-```
+  -f, --force                  force FMU generation even if file exists.
+  --help                       Show this message and exit.----
+----
+
+== Usage in Python
+
+Here is an example of how to use the `mo2fmu` function in Python that would convert a Modelica file to an FMU:
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+mo2fmu(
+    mo_file="path/to/model.mo",
+    outdir="path/to/output/dir",
+    fmumodelname="MyFMUModel",
+    load=["Modelica", "SomePackage"],
+    flags=["-d=initialization"],
+    fmi_type="cs",
+    fmi_version="2.0",
+    dymola_root="/path/to/dymola/root",
+    dymola_executable="/path/to/dymola/executable",
+    dymola_egg="/path/to/dymola.egg",
+    verbose=True,
+    force=False
+)
+----
 
 == Continuous Integration
 
