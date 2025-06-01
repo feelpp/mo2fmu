@@ -75,6 +75,9 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
         # **3) Finally, disable code export for debugging clarity**
         dymola.ExecuteCommand("Advanced.EnableCodeExport = false;")
 
+        #  Turn on full compiler optimizations (instead of the default -O1) :contentReference[oaicite:0]{index=0}
+        dymola.ExecuteCommand("Advanced.Define.GlobalOptimizations=2;")
+
         # Compute the fully qualified model name (package + file stem)
         packageName = ""
         with open(mo, "r") as f:
