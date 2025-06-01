@@ -1,5 +1,5 @@
 import pytest
-from feelpp.mo2fmu.mo2fmu import mo2fmu
+from feelpp.mo2fmu import mo2fmu
 from pathlib import Path
 
 
@@ -33,9 +33,12 @@ def test_basicConversion(mo, outdir):
     version = "2"
     dymola = "/opt/dymola-2023-x86_64/"
     dymolapath = "/usr/local/bin/dymola-2023-x86_64"
-    # dymolaegg = "/data/home/pincon/mo2fmu/dymola_patched.egg"
     dymolaegg = "Modelica/Library/python_interface/dymola.egg"
     verbose = True
     force = True
 
     mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force)
+    # check if the FMU file is created
+    fmu_path = Path(outdir) / "ode_exp.fmu"
+    assert fmu_path.exists(), f"FMU file {fmu_path} was not created."
+    print(f"FMU file created at: {fmu_path}")

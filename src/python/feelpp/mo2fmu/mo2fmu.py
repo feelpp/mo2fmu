@@ -15,124 +15,164 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
     mo2fmu -v foo.mo .
     """
     logger = spd.ConsoleLogger('Logger', False, True, True)
-    has_dymola=False
-    # Changing the PYTHONPATH
+    has_dymola = False
 
+    # Prevent writing FMU into the same directory as cwd
     if Path(outdir) == Path(os.getcwd()):
         logger.error('the destination directory should be different from {}'.format(os.getcwd()))
         return False
+
+    # Attempt to load Dymola’s Python interface
     try:
         sys.path.append(str(Path(dymola) / Path(dymolaegg)))
         logger.info("add {} to sys path".format(Path(dymola) / Path(dymolaegg)))
         if not (Path(dymola) / Path(dymolaegg)).is_file():
-            logger.error("dymola egg {} does not exist".format(
-                Path(dymola) / Path(dymolaegg)))
+            logger.error("dymola egg {} does not exist".format(Path(dymola) / Path(dymolaegg)))
         import dymola
         from dymola.dymola_interface import DymolaInterface
         from dymola.dymola_exception import DymolaException
         has_dymola = True
-        logger.info("dymola is available in {}/{}".format(
-            dymola, dymolaegg) )
-    except ImportError as e:
-        logger.info(
-            "dymola module is not available, has_dymola: {}".format(has_dymola))
-        pass  # module doesn't exist, deal with it.
+        logger.info("dymola is available in {}/{}".format(dymola, dymolaegg))
+    except ImportError:
+        logger.info("dymola module is not available, has_dymola: {}".format(has_dymola))
     if not has_dymola:
         logger.error("dymola is not available, mo2fmu failed")
         return False
+
+    # Start a virtual framebuffer (for headless Dymola)
     vdisplay = Xvfb()
     vdisplay.start()
+
     osString = platform.system()
     isWindows = osString.startswith("Win")
 
     dymola = None
     try:
-
+        # Determine the FMU model name (default: .mo file stem)
         fmumodelname = Path(fmumodelname if fmumodelname else mo).stem
         if verbose:
             logger.info("convert {} to {}.fmu".format(mo, fmumodelname))
 
-        if (Path(outdir)/Path(fmumodelname+'.fmu')).is_file() and force:
-            logger.warn(
-                "{}.fmu exists, dymola will overwrite it".format(Path(outdir)/fmumodelname))
-        elif (Path(outdir)/Path(fmumodelname+'.fmu')).is_file():
-            logger.warn(
-                "{}.fmu exists, dymola will not overwrite it, use `--force` or `-f` to overwrite it.".format(Path(outdir)/fmumodelname))
-            return
-        elif (Path(outdir)).is_dir() is False:
+        # If an FMU already exists in outdir
+        target_fmu = Path(outdir) / f"{fmumodelname}.fmu"
+        if target_fmu.is_file() and force:
+            logger.warn(f"{fmumodelname}.fmu exists in {outdir}, will overwrite it")
+        elif target_fmu.is_file():
+            logger.warn(f"{fmumodelname}.fmu exists in {outdir}; use `--force` to overwrite.")
+            return False
+
+        # Create outdir if it doesn’t exist
+        if not Path(outdir).is_dir():
             os.mkdir(outdir)
 
-
-        # Instantiate the Dymola interface and start Dymola
+        # Instantiate Dymola interface
         dymola = DymolaInterface(dymolapath=dymolapath, showwindow=False)
-        dymola.ExecuteCommand("Advanced.EnableCodeExport = false;")
-        dymola.ExecuteCommand("Advanced.CompileWith64=2;")
 
-        # Get the name of the package where the model belongs
-        packageName=""
+        # **1) Disable any 32-bit build first**
+        dymola.ExecuteCommand("Advanced.Generate32BitBinary=false;")
+        # **2) Then force 64-bit-only compilation**
+        dymola.ExecuteCommand("Advanced.CompileWith64=2;")
+        # **3) Finally, disable code export for debugging clarity**
+        dymola.ExecuteCommand("Advanced.EnableCodeExport = false;")
+
+        # Compute the fully qualified model name (package + file stem)
+        packageName = ""
         with open(mo, "r") as f:
             lines = f.readlines()
         for line in lines:
             if line.strip().startswith('within '):
                 packageName = line.split(' ')[1][:-2]
-            else:
-                pass
-        if packageName != "":
-            moModel = packageName+"."+Path(mo).stem
+        if packageName:
+            moModel = f"{packageName}.{Path(mo).stem}"
         else:
             moModel = Path(mo).stem
 
+        # Load any additional packages
         if load:
             for package in load:
                 if verbose:
                     logger.info("load modelica package {}".format(package))
                 dymola.openModel(package, changeDirectory=False)
 
+        # Apply any Dymola flags
         if flags:
             for flag in flags:
                 if verbose:
                     logger.info("Flag {}".format(flag))
                 dymola.ExecuteCommand(flag)
 
+        # Open the .mo file
         dymola.openModel(mo, changeDirectory=False)
+
+        # Ensure Dymola’s working directory matches Python’s cwd
+        cwd_posix = str(Path.cwd().as_posix())
+        dymola.ExecuteCommand(f'cd("{cwd_posix}");')
+        logger.info(f"Dymola working directory = {cwd_posix}")
+
+        # Request FMU translation (now only 64-bit since 32-bit is disabled)
         result = dymola.translateModelFMU(
-            moModel, modelName=fmumodelname, fmiVersion="2", fmiType=type)
-        if (Path(outdir)/Path(fmumodelname+'.fmu')).is_file() and force:
-            os.remove(Path(outdir)/Path(fmumodelname+'.fmu'))
-        dest = shutil.move(str(Path(fmumodelname+'.fmu')), str(Path(outdir)  ))
-        logger.info("translateModelFMU {}.mo -> {}".format(Path(mo).stem, dest))
+            moModel, modelName=fmumodelname, fmiVersion="2", fmiType=type
+        )
+
         if not result:
             log = dymola.getLastErrorLog()
-            logger.error("Simulation failed. Below is the translation log.")
-            logger.info(log)
-            return
+            logger.error("translateModelFMU returned False. Dymola log:")
+            logger.error(log)
+            return False
+
+        # Verify that the FMU file actually appeared
+        expected_fmu = Path.cwd() / f"{fmumodelname}.fmu"
+        if not expected_fmu.is_file():
+            logger.error(f"Expected FMU '{expected_fmu.name}' not found in {Path.cwd()}")
+            logger.error(f"Directory listing (*.fmu): {list(Path.cwd().glob('*.fmu'))}")
+            return False
+
+        # If an old FMU exists in outdir and --force was given, remove it
+        if target_fmu.is_file() and force:
+            target_fmu.unlink()
+        elif target_fmu.is_file():
+            logger.warn(f"{target_fmu.name} already exists in {outdir}; use --force to overwrite")
+            return False
+
+        # Move the FMU to the output directory
+        dest = shutil.move(str(expected_fmu), str(Path(outdir)))
+        logger.info(f"translateModelFMU {Path(mo).stem} → {dest}")
+
         if verbose:
-            logger.info("{} file successfully generated".format(fmumodelname))
-        assert((Path(outdir)/Path(fmumodelname+'.fmu')).is_file())
+            logger.info(f"{fmumodelname}.fmu successfully generated in {outdir}")
+
+        return True
+
     except DymolaException as ex:
         logger.error(str(ex))
-        vdisplay.stop()
+        return False
+
     finally:
+        # Clean up: close Dymola and stop the virtual framebuffer
         if dymola is not None:
             dymola.close()
-            dymola = None
-            vdisplay.stop()
+        vdisplay.stop()
 
-    spd.drop('Logger')
-    # return modelpath+fmufilname
 
 @click.command()
 @click.argument('mo', type=str, nargs=1)
 @click.argument('outdir', type=click.Path(), nargs=1)
-@click.option('--fmumodelname', default=None, type=str, help="change the modelname of the fmu, by default use the modelical file stem")
-@click.option('--load', default=None, multiple=True, help='load one or more modelica packages.')
-@click.option('--flags', default=None, multiple=True, help='One or more Dymola flags for FMU translation.')
-@click.option('--type', default="all",  type=click.Choice(['all', 'cs', "me", "csSolver"]), help='The fmi types cs, me, all.')
-@click.option('--version', default="2", help='The fmi version.')
-@click.option('--dymola', default="/opt/dymola-2023-x86_64/", type=click.Path(), help='path to dymola executable.')
-@click.option('--dymolapath', default="/usr/local/bin/dymola-2023-x86_64", type=click.Path(), help='path to dymola executable.')
-@click.option('--dymolaegg', default="Modelica/Library/python_interface/dymola.egg", type=click.Path(), help='path to dymola egg file relative to dymola root path.')
+@click.option('--fmumodelname', default=None, type=str,
+              help="change the model name of the FMU (default: .mo file stem)")
+@click.option('--load', default=None, multiple=True,
+              help='load one or more Modelica packages.')
+@click.option('--flags', default=None, multiple=True,
+              help='one or more Dymola flags for FMU translation.')
+@click.option('--type', default="all", type=click.Choice(['all', 'cs', 'me', 'csSolver']),
+              help='the FMI type: cs, me, all, or csSolver.')
+@click.option('--version', default="2", help='the FMI version.')
+@click.option('--dymola', default="/opt/dymola-2023-x86_64/", type=click.Path(),
+              help='path to Dymola root.')
+@click.option('--dymolapath', default="/usr/local/bin/dymola-2023-x86_64", type=click.Path(),
+              help='path to Dymola executable.')
+@click.option('--dymolaegg', default="Modelica/Library/python_interface/dymola.egg", type=click.Path(),
+              help='path to Dymola egg file, relative to Dymola root.')
 @click.option('-v', '--verbose', is_flag=True, help='verbose mode.')
-@click.option('-f', '--force', is_flag=True, help='force fmu generation even if file exists.')
+@click.option('-f', '--force', is_flag=True, help='force FMU generation even if file exists.')
 def mo2fmuCLI(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force):
     mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force)
