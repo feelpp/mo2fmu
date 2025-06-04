@@ -48,9 +48,14 @@ jobs:
           pipx run build
           uv pip install dist/*.whl
 
+      - name: Sleep to avoid dymola license conflit
+        if: matrix.os == 'ubuntu-24.04'
+        run: |
+          echo "Sleeping to wait dymola license availability"
+          sleep 120
+
       - name: Python Tests
         run: |
-          sleep 60
           source .venv/bin/activate
           pytest
 
