@@ -14,6 +14,7 @@ jobs:
     continue-on-error: true
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
     name: Build wheel package
@@ -49,6 +50,7 @@ jobs:
 
       - name: Python Tests
         run: |
+          sleep 60
           source .venv/bin/activate
           pytest
 
