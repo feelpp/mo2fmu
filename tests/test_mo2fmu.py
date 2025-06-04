@@ -53,11 +53,11 @@ def test_basicConversion(mo, outdir):
     from dymola.dymola_interface import DymolaInterface
     dymApp = DymolaInterface(dymolapath=dymolapath, showwindow=False)
     importedFMU = dymApp.importFMU(str(fmu_path))
-    print(importedFMU)
+    assert importedFMU, f"FMU file {fmu_path} couldn't be imported"
     result = dymApp.checkModel(problem="ode_exp_fmu", simulate=False)
     if result is False:
         log = dymApp.getLastErrorLog()
         print(log)
     dymApp.close()
     vdisplay.stop()
-    assert result, f"FMU file {fmu_path} isn't valid, see the log: {log}"
+    assert result, f"FMU file {fmu_path} isn't valid, see the log above."
