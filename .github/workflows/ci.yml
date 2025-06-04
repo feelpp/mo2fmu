@@ -55,6 +55,7 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
           GIRDER_API_KEY: ${{ secrets.GIRDER }}
+          DYMOLA_RUNTIME_LICENSE: "${{ secrets.DYMOLA_RUNTIME_LICENSE }}"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
