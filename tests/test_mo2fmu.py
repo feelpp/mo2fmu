@@ -1,5 +1,5 @@
 import pytest
-from feelpp.mo2fmu import mo2fmu
+from feelpp.mo2fmu.mo2fmu import mo2fmu
 from pathlib import Path
 
 
