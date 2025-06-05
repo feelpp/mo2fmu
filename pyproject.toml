@@ -1,0 +1,99 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "feelpp-mo2fmu"
+version = "0.1.0"
+description = "Feel++ modelica to fmu converter package"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Christophe Prud'homme", email = "christophe.prudhomme@cemosis.fr" },
+    { name = "Philippe Pinçon", email = "philippe.pincon@cemosis.fr" }
+]
+requires-python = ">=3.0"
+classifiers = [
+    "Development Status :: 1 - Beta",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: OS Independent"
+]
+
+# Runtime dependencies (installed when running pip install .)
+dependencies = [
+    "click",
+    "spdlog",
+    "xvfbwrapper",
+    "pathlib"
+]
+
+[project.urls]
+Homepage = "https://feelpp.github.io/mo2fmu"
+Documentation = "https://feelpp.github.io/mo2fmu"
+Repository = "https://github.com/feelpp/mo2fmu"
+Issues = "https://github.com/feelpp/mo2fmu/issues"
+
+# Optional dependencies for testing and development.
+[project.optional-dependencies]
+test = [
+  "pytest",
+]
+dev = [
+  "pipx",
+  "build",
+]
+
+[project.scripts]
+mo2fmu = "feelpp.mo2fmu.mo2fmu:mo2fmuCLI"
+
+[tool.setuptools]
+package-dir = {"" = "src/python"}
+
+[tool.setuptools.packages.find]
+where = ["src/python"]
+namespaces = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+xfail_strict = true
+filterwarnings = [
+  "error",
+  "ignore:(ast.Str|Attribute s|ast.NameConstant|ast.Num) is deprecated:DeprecationWarning:_pytest",
+]
+
+[tool.ruff]
+src = ["src/python"]
+
+[tool.ruff.lint]
+extend-select = [
+  "B",           # flake8-bugbear
+  "I",           # isort
+  "ARG",         # flake8-unused-arguments
+  "C4",          # flake8-comprehensions
+  "EM",          # flake8-errmsg
+  "ICN",         # flake8-import-conventions
+  "G",           # flake8-logging-format
+  "PGH",         # pygrep-hooks
+  "PIE",         # flake8-pie
+  "PL",          # pylint
+  "PT",          # flake8-pytest-style
+  "PTH",         # flake8-use-pathlib
+  "RET",         # flake8-return
+  "RUF",         # Ruff-specific
+  "SIM",         # flake8-simplify
+  "T20",         # flake8-print
+  "UP",          # pyupgrade
+  "YTT",         # flake8-2020
+  "EXE",         # flake8-executable
+  "NPY",         # NumPy specific rules
+  "PD",          # pandas-vet
+]
+ignore = [
+  "PLR"         # Design related pylint codes
+]
+isort.required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.per-file-ignores]
+"tests/**" = ["T20"]

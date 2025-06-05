@@ -1,19 +1,33 @@
-# Feel++ mo2fmu converter
+:feelpp: Feel++
+:cpp: C++
+:project: feelpp-mo2fmu
+
+= {feelpp} mo2fmu converter
+:author: Christophe Prud’homme
+:email: <christophe.prudhomme@cemosis.fr>
+:revdate: 2025-05-06
+:doctype: book
+:toc:
+:toclevels: 2
+:icons: font
+:source-highlighter: rouge
 
 Modelica to FMU converter based on dymola
 
-## Installation
+== Installation
 
-```console
+[source,console]
+----
 uv venv
 source .venv/bin/activate
 uv pip install -r pyproject.toml --extra dev --extra test
 uv pip install .
-```
+----
 
-## Usage in command line
+== Usage in command line
 
-```console
+[source,console]
+----
 $ mo2fmu --help
 Usage: mo2fmu [OPTIONS] MO OUTDIR
 
@@ -31,13 +45,14 @@ Options:
   -v, --verbose                verbose mode.
   -f, --force                  force FMU generation even if file exists.
   --help                       Show this message and exit.----
-```
+----
 
-## Usage in Python
+== Usage in Python
 
 Here is an example of how to use the `mo2fmu` function in Python that would convert a Modelica file to an FMU:
 
-```python
+[source,python]
+----
 from feelpp.mo2fmu import mo2fmu
 mo2fmu(
     mo_file="path/to/model.mo",
@@ -53,9 +68,9 @@ mo2fmu(
     verbose=True,
     force=False
 )
-```
+----
 
-## Continuous Integration
+== Continuous Integration
 
 Our GitHub Actions workflow (`.github/workflows/ci.yml`) includes:
 
@@ -64,14 +79,14 @@ Our GitHub Actions workflow (`.github/workflows/ci.yml`) includes:
 * deliver: Docker image build & push to GHCR.
 * release: On tags vX.Y.Z, publishes binaries, wheels, datasets, and creates a GitHub release.
 
-## Versioning & Release
+== Versioning & Release
 
 Project version is centrally defined in:
 
 * docs/antora.yml
 * docs/package.json
 
-## Contributing
+== Contributing
 
 We welcome contributions! Please:
 
@@ -80,7 +95,8 @@ We welcome contributions! Please:
 * Update documentation (docs/) for any new features.
 * Submit a pull request with a clear description of your changes.
 
-## License
+== License
 
 This project is licensed under the MIT License.
 See LICENSE for full details.
+
