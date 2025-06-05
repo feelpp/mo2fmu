@@ -109,11 +109,11 @@ jobs:
           source .venv/bin/activate
           uv pip install dist/*.whl
 
-      - name: Check if supplemental-ui exists
-        run: |
-          echo "Current dir: $(pwd)"
-          ls -la ./docs/antora/
-          ls -la ./docs/antora/supplemental-ui
+      # - name: Check if supplemental-ui exists
+      #   run: |
+      #     echo "Current dir: $(pwd)"
+      #     ls -la ./docs/antora/
+      #     ls -la ./docs/antora/supplemental-ui
 
       - name: Debug find supplemental-ui
         run: find . -name "supplemental-ui" -type d
