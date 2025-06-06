@@ -9,6 +9,9 @@ __pycache__/
 ds*
 status
 request
+dymosim
+buildlog.txt
+Resources/
 
 mo2fmu_feelpp.egg-info/
 **/feelpp_mo2fmu.egg-info/
