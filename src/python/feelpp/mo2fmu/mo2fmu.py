@@ -155,6 +155,7 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
         if dymola is not None:
             dymola.close()
         vdisplay.stop()
+        spd.drop('Logger')
 
 
 @click.command()
