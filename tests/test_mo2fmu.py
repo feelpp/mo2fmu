@@ -97,9 +97,9 @@ def test_basicConversion(mo, outdir):
     flags = None
     type = "all"
     version = "2"
-    dymola = "/opt/dymola-2023-x86_64/"
-    dymolapath = "/usr/local/bin/dymola-2023-x86_64"
-    dymolaegg = "Modelica/Library/python_interface/dymola.egg"
+    dymola = "/opt/dymola-2025xRefresh1-x86_64/"
+    dymolapath = "/usr/local/bin/dymola"
+    dymolaegg = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
     verbose = True
     force = True
 

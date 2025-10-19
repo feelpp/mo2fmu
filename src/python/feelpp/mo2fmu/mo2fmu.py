@@ -68,14 +68,11 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
         # Instantiate Dymola interface
         dymola = DymolaInterface(dymolapath=dymolapath, showwindow=False)
 
-        # **1) Disable any 32-bit build first**
-        dymola.ExecuteCommand("Advanced.Generate32BitBinary=false;")
-        # **2) Then force 64-bit-only compilation**
+        # **1) Disable any 32-bit build first and force 64-bit-only compilation **
         dymola.ExecuteCommand("Advanced.CompileWith64=2;")
-        # **3) Finally, disable code export for debugging clarity**
-        dymola.ExecuteCommand("Advanced.EnableCodeExport = false;")
-
-        #  Turn on full compiler optimizations (instead of the default -O1) :contentReference[oaicite:0]{index=0}
+        # **2) Enable code export so FMU contains sources or compiled binaries and no longer requires a license to run **
+        dymola.ExecuteCommand("Advanced.EnableCodeExport=true;")
+        # **3) Turn on full compiler optimizations (instead of the default -O1) :contentReference[oaicite:0]{index=0}
         dymola.ExecuteCommand("Advanced.Define.GlobalOptimizations=2;")
 
         # Compute the fully qualified model name (package + file stem)
@@ -119,8 +116,11 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
 
         if not result:
             log = dymola.getLastErrorLog()
+            licInfo = dymola.DymolaLicenseInfo()
             logger.error("translateModelFMU returned False. Dymola log:")
             logger.error(log)
+            logger.error("Dymola License Information:")
+            logger.error(licInfo)
             return False
 
         # Verify that the FMU file actually appeared
@@ -170,11 +170,11 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
 @click.option('--type', default="all", type=click.Choice(['all', 'cs', 'me', 'csSolver']),
               help='the FMI type: cs, me, all, or csSolver.')
 @click.option('--version', default="2", help='the FMI version.')
-@click.option('--dymola', default="/opt/dymola-2023-x86_64/", type=click.Path(),
+@click.option('--dymola', default="/opt/dymola-2025xRefresh1-x86_64/", type=click.Path(),
               help='path to Dymola root.')
-@click.option('--dymolapath', default="/usr/local/bin/dymola-2023-x86_64", type=click.Path(),
+@click.option('--dymolapath', default="/usr/local/bin/dymola", type=click.Path(),
               help='path to Dymola executable.')
-@click.option('--dymolaegg', default="Modelica/Library/python_interface/dymola.egg", type=click.Path(),
+@click.option('--dymolaegg', default="Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl", type=click.Path(),
               help='path to Dymola egg file, relative to Dymola root.')
 @click.option('-v', '--verbose', is_flag=True, help='verbose mode.')
 @click.option('-f', '--force', is_flag=True, help='force FMU generation even if file exists.')
