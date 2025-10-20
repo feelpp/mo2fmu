@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "feelpp-mo2fmu"
-version = "0.1.0"
+version = "0.5.0"
 description = "Feel++ modelica to fmu converter package"
 readme = "README.md"
 license = { text = "MIT" }
