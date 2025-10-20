@@ -51,7 +51,11 @@ def mo2fmu(
         >>> mo2fmu("model.mo", "./output", None, None, None, "cs", "2",
         ...        "/opt/dymola", "/usr/local/bin/dymola", "dymola.whl", True, False)
     """
-    logger = spd.ConsoleLogger("Logger", False, True, True)
+    # Create logger with unique name based on file being processed
+    import uuid
+
+    logger_name = f"mo2fmu_{uuid.uuid4().hex[:8]}"
+    logger = spd.ConsoleLogger(logger_name, False, True, True)
     has_dymola = False
 
     # Prevent writing FMU into the same directory as cwd

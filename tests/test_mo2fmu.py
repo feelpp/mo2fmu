@@ -81,6 +81,13 @@ def test_pathExists(modelPath, outdirPath):
     print(modelPath)
 
 
+# Check if Dymola is available
+DYMOLA_PATH = "/opt/dymola-2025xRefresh1-x86_64/"
+DYMOLA_WHL = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
+HAS_DYMOLA = (Path(DYMOLA_PATH) / DYMOLA_WHL).is_file()
+
+
+@pytest.mark.skipif(not HAS_DYMOLA, reason="Dymola not available in test environment")
 @pytest.mark.parametrize(
     "mo, outdir", [("src/cases/ode_exp.mo", "src/"), ("src/cases/ode_sin.mo", "src/")]
 )
