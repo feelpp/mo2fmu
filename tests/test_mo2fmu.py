@@ -1,11 +1,15 @@
-import pytest
-from feelpp.mo2fmu.mo2fmu import mo2fmu
+from __future__ import annotations
+
 from pathlib import Path
+
+import pytest
 from xvfbwrapper import Xvfb
 
+from feelpp.mo2fmu.mo2fmu import mo2fmu
+
+
 def checkFmuFileExist(fmuPath, outdir):
-    """
-    Check if FMU file exist
+    """Check if FMU file exists.
 
     Parameters
     ----------
@@ -17,10 +21,11 @@ def checkFmuFileExist(fmuPath, outdir):
     assert fmuPath.exists(), f"FMU file {fmuPath} was not created."
     print(f"FMU file created at: {fmuPath}")
 
+
 def checkFmuValidity(fmuPath, fmuModel, dymolapath):
-    """
-    Check that the fmu model has the same number of unknowns and equations,
-    and that it can be simulated.
+    """Check that the fmu model has the same number of unknowns and equations.
+
+    Also verifies that it can be simulated.
 
     Parameters
     ----------
@@ -31,13 +36,13 @@ def checkFmuValidity(fmuPath, fmuModel, dymolapath):
     dymolapath: path
         path of the dymola application
     """
-
     # launch a display server (needed to launch Dymola)
     vdisplay = Xvfb()
     vdisplay.start()
 
     # launch Dymola
     from dymola.dymola_interface import DymolaInterface
+
     dymApp = DymolaInterface(dymolapath=dymolapath, showwindow=False)
 
     # import the FMU
@@ -57,13 +62,12 @@ def checkFmuValidity(fmuPath, fmuModel, dymolapath):
     assert result, f"FMU file {fmuPath} isn't valid, see the log above."
 
 
-@pytest.mark.parametrize("modelPath, outdirPath", [
-    (Path("src/cases/ode_exp.mo"), Path("src")),
-    (Path("src/cases/ode_sin.mo"), Path("src"))
-])
+@pytest.mark.parametrize(
+    "modelPath, outdirPath",
+    [(Path("src/cases/ode_exp.mo"), Path("src")), (Path("src/cases/ode_sin.mo"), Path("src"))],
+)
 def test_pathExists(modelPath, outdirPath):
-    """
-    Test if path of the modelica model and the output directory exist.
+    """Test if path of the modelica model and the output directory exist.
 
     Parameters
     ----------
@@ -77,13 +81,18 @@ def test_pathExists(modelPath, outdirPath):
     print(modelPath)
 
 
-@pytest.mark.parametrize("mo, outdir", [
-    ("src/cases/ode_exp.mo", "src/"),
-    ("src/cases/ode_sin.mo", "src/")
-])
+# Check if Dymola is available
+DYMOLA_PATH = "/opt/dymola-2025xRefresh1-x86_64/"
+DYMOLA_WHL = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
+HAS_DYMOLA = (Path(DYMOLA_PATH) / DYMOLA_WHL).is_file()
+
+
+@pytest.mark.skipif(not HAS_DYMOLA, reason="Dymola not available in test environment")
+@pytest.mark.parametrize(
+    "mo, outdir", [("src/cases/ode_exp.mo", "src/"), ("src/cases/ode_sin.mo", "src/")]
+)
 def test_basicConversion(mo, outdir):
-    """
-    Test mo2fmu python script using mo file.
+    """Test mo2fmu python script using mo file.
 
     Parameters
     ----------
@@ -97,9 +106,9 @@ def test_basicConversion(mo, outdir):
     flags = None
     type = "all"
     version = "2"
-    dymola = "/opt/dymola-2023-x86_64/"
-    dymolapath = "/usr/local/bin/dymola-2023-x86_64"
-    dymolaegg = "Modelica/Library/python_interface/dymola.egg"
+    dymola = "/opt/dymola-2025xRefresh1-x86_64/"
+    dymolapath = "/usr/local/bin/dymola"
+    dymolawhl = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
     verbose = True
     force = True
 
@@ -108,7 +117,20 @@ def test_basicConversion(mo, outdir):
     fmuDymola = f"{baseName}_fmu"
 
     # call mo2fmu converter
-    mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force)
+    mo2fmu(
+        mo,
+        outdir,
+        fmumodelname,
+        load,
+        flags,
+        type,
+        version,
+        dymola,
+        dymolapath,
+        dymolawhl,
+        verbose,
+        force,
+    )
 
     # check if the FMU file is created
     checkFmuFileExist(fmuPath, outdir)

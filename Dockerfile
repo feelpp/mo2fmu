@@ -1,8 +1,10 @@
 
-FROM ghcr.io/feelpp/dymola:2021
+FROM ghcr.io/feelpp/dymola:2025
 
 USER root
-RUN pip3 install click spdlog
+COPY pyproject.toml .
+COPY src/ ./src/
+RUN pip3 install click spdlog xvfbwrapper pathlib
 RUN pip3 install --editable .
 
 

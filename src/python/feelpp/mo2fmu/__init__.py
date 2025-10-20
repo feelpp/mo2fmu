@@ -1,6 +1,8 @@
-# -*- coding: utf-8 -*-
+"""Feel++ Modelica to FMU converter package."""
 
-# expose the `mo2fmu` function at the package level
-from .mo2fmu import mo2fmu
+from __future__ import annotations
 
+__version__ = "0.5.1"
+__all__ = ["mo2fmu", "mo2fmuCLI"]
 
+from feelpp.mo2fmu.mo2fmu import mo2fmu, mo2fmuCLI
