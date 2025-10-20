@@ -7,17 +7,26 @@ name = "feelpp-mo2fmu"
 version = "0.1.0"
 description = "Feel++ modelica to fmu converter package"
 readme = "README.md"
-license = "MIT"
-license-files = ["LICENSE"]
+license = { text = "MIT" }
 authors = [
     { name = "Christophe Prud'homme", email = "christophe.prudhomme@cemosis.fr" },
     { name = "Philippe Pinçon", email = "philippe.pincon@cemosis.fr" }
 ]
-requires-python = ">=3.0"
+keywords = ["modelica", "fmu", "fmi", "dymola", "simulation"]
+requires-python = ">=3.8.1"
 classifiers = [
-    "Development Status :: 1 - Beta",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3 :: Only",
-    "Operating System :: OS Independent"
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
 ]
 
 # Runtime dependencies (installed when running pip install .)
@@ -37,11 +46,25 @@ Issues = "https://github.com/feelpp/mo2fmu/issues"
 # Optional dependencies for testing and development.
 [project.optional-dependencies]
 test = [
-  "pytest",
+  "pytest>=7.0",
+  "pytest-cov>=4.0",
 ]
 dev = [
   "pipx",
   "build",
+  "twine",
+]
+lint = [
+  "black>=23.0",
+  "flake8>=6.0",
+  "flake8-docstrings>=1.7",
+  "flake8-bugbear>=23.0",
+  "mypy>=1.0",
+  "ruff>=0.1.0",
+  "isort>=5.12",
+]
+all = [
+  "feelpp-mo2fmu[test,dev,lint]",
 ]
 
 [project.scripts]
@@ -53,6 +76,9 @@ package-dir = {"" = "src/python"}
 [tool.setuptools.packages.find]
 where = ["src/python"]
 namespaces = true
+
+[tool.setuptools.package-data]
+"feelpp.mo2fmu" = ["py.typed"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -91,9 +117,92 @@ extend-select = [
   "PD",          # pandas-vet
 ]
 ignore = [
-  "PLR"         # Design related pylint codes
+  "PLR",        # Design related pylint codes
+  "PLC0415",    # Import outside top-level (needed for dymola imports)
+  "G004",       # Logging f-string (more readable)
+  "G010",       # Logging warn vs warning (spdlog uses warn)
+  "PTH",        # Use pathlib (gradual migration)
+  "ARG001",     # Unused function argument
+  "UP045",      # Use X | None (Optional is clearer for now)
+  "SIM108",     # Use ternary operator (less readable for this case)
+  "PT006",      # pytest parametrize string form (more readable)
 ]
-isort.required-imports = ["from __future__ import annotations"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.per-file-ignores]
 "tests/**" = ["T20"]
+
+# Black - Code formatter
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# isort - Import sorting
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["feelpp"]
+force_sort_within_sections = true
+skip_gitignore = true
+
+# mypy - Type checking
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = [
+    "dymola.*",
+    "xvfbwrapper.*",
+    "spdlog.*",
+]
+ignore_missing_imports = true
+
+# Coverage
+[tool.coverage.run]
+source = ["src/python"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

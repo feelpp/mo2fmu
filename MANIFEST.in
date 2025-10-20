@@ -1,0 +1,15 @@
+include README.md
+include LICENSE
+include pyproject.toml
+include .flake8
+
+recursive-include src *.py py.typed
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+exclude .gitignore
+exclude Makefile
+exclude Dockerfile
+prune tests
+prune docs
+prune .github

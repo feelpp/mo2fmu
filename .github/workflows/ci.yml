@@ -18,12 +18,12 @@ jobs:
       matrix:
         os: [ubuntu-24.04]
     name: Build wheel package
-    if: "!contains(github.event.head_commit.message, 'skip wheel')"
+    if: ${{ !contains(github.event.head_commit.message, 'skip wheel') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ifs: true
+          lfs: true
           submodules: recursive
           clean: true
 
@@ -36,22 +36,25 @@ jobs:
 
       - name: Install Python/Node Env
         run: |
-          uv venv
-          source .venv/bin/activate
-          uv pip install -r pyproject.toml --extra dev --extra test
+          uv venv .venv-mo2fmu
+          uv pip install --python .venv-mo2fmu -e ".[all]"
           npm install
           npx downdoc README.adoc
 
+      - name: Code Quality Checks
+        run: |
+          uv run --python .venv-mo2fmu ruff check src/python tests
+          uv run --python .venv-mo2fmu black --check src/python tests
+          uv run --python .venv-mo2fmu flake8 src/python tests
+          uv run --python .venv-mo2fmu mypy src/python
+
       - name: Build mo2fmu wheel
         run: |
-          source .venv/bin/activate
-          pipx run build
-          uv pip install dist/*.whl
+          uv build
 
       - name: Python Tests
         run: |
-          source .venv/bin/activate
-          pytest
+          uv run --python .venv-mo2fmu pytest --cov=feelpp.mo2fmu --cov-report=term-missing --cov-report=xml
 
         env:
           PYTHONPATH: ${{ github.workspace }}
@@ -71,7 +74,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04]
     name: Build & Deploy docs
-    if: "!contains(github.event.head_commit.message, 'skip docs')"
+    if: ${{ !contains(github.event.head_commit.message, 'skip docs') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -99,9 +102,8 @@ jobs:
 
       - name: Install Python deps
         run: |
-          uv venv
-          source .venv/bin/activate
-          uv pip install dist/*.whl
+          uv venv .venv-mo2fmu
+          uv pip install --python .venv-mo2fmu dist/*.whl
 
       - name: Build Antora site
         run: |
@@ -113,7 +115,7 @@ jobs:
           GIRDER_API_KEY: ${{ secrets.GIRDER }}
 
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-24.04'
+        if: github.ref == 'refs/heads/main' && matrix.os == 'ubuntu-24.04'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -125,16 +127,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_wheel
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Download wheel artifact (Ubuntu 22.04)
+      - name: Download wheel artifact (Ubuntu 24.04)
         uses: actions/download-artifact@v4
         with:
-          name: artifacts-wheel-ubuntu-22.04
+          name: artifacts-wheel-ubuntu-24.04
           path: ./dist/
 
       - name: Create Release & Upload Wheel
@@ -147,3 +152,10 @@ jobs:
             LICENSE
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          verbose: true
+

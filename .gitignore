@@ -20,3 +20,18 @@ node_modules/
 **/__pycache__/
 .env
 .venv/
+.venv-mo2fmu/
+
+# Test artifacts and FMU outputs
+*.fmu
+toto/
+
+# Coverage reports
+.coverage
+htmlcov/
+coverage.xml
+
+# Type checking and linting
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
