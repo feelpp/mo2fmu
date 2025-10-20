@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "feelpp-mo2fmu"
-version = "0.5.1"
+version = "0.5.2"
 description = "Feel++ modelica to fmu converter package"
 readme = "README.md"
 license = { text = "MIT" }
@@ -206,3 +206,20 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+
+# Configuration for mo2fmu
+# 
+# Dymola location can be configured via environment variables:
+# - DYMOLA_ROOT: Path to Dymola installation root directory
+#   Default: /opt/dymola-2025xRefresh1-x86_64/
+#
+# - DYMOLA_EXECUTABLE: Path to Dymola executable binary
+#   Default: /usr/local/bin/dymola
+#
+# - DYMOLA_WHL: Relative path to Dymola Python wheel (from DYMOLA_ROOT)
+#   Default: Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+#
+# Example:
+#   export DYMOLA_ROOT=/path/to/dymola
+#   export DYMOLA_EXECUTABLE=/path/to/dymola/bin/dymola
+#   export DYMOLA_WHL=Modelica/Library/python_interface/dymola.whl

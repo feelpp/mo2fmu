@@ -39,7 +39,6 @@ jobs:
           uv venv .venv-mo2fmu
           uv pip install --python .venv-mo2fmu -e ".[all]"
           npm install
-          npx downdoc README.adoc
 
       - name: Code Quality Checks
         run: |
@@ -62,6 +61,9 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
           GIRDER_API_KEY: ${{ secrets.GIRDER }}
           DYMOLA_RUNTIME_LICENSE: "${{ secrets.DYMOLA_RUNTIME_LICENSE }}"
+          DYMOLA_ROOT: /opt/dymola-2025xRefresh1-x86_64/
+          DYMOLA_EXECUTABLE: /usr/local/bin/dymola
+          DYMOLA_WHL: Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

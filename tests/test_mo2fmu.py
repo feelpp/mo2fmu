@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -82,8 +83,15 @@ def test_pathExists(modelPath, outdirPath):
 
 
 # Check if Dymola is available
-DYMOLA_PATH = "/opt/dymola-2025xRefresh1-x86_64/"
-DYMOLA_WHL = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
+# Configure via environment variables:
+# - DYMOLA_ROOT: Path to Dymola installation (default: /opt/dymola-2025xRefresh1-x86_64/)
+# - DYMOLA_EXECUTABLE: Path to Dymola binary (default: /usr/local/bin/dymola)
+# - DYMOLA_WHL: Relative path to Python wheel (default: Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl)
+DYMOLA_PATH = os.getenv("DYMOLA_ROOT", "/opt/dymola-2025xRefresh1-x86_64/")
+DYMOLA_EXECUTABLE = os.getenv("DYMOLA_EXECUTABLE", "/usr/local/bin/dymola")
+DYMOLA_WHL = os.getenv(
+    "DYMOLA_WHL", "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
+)
 HAS_DYMOLA = (Path(DYMOLA_PATH) / DYMOLA_WHL).is_file()
 
 
@@ -106,9 +114,6 @@ def test_basicConversion(mo, outdir):
     flags = None
     type = "all"
     version = "2"
-    dymola = "/opt/dymola-2025xRefresh1-x86_64/"
-    dymolapath = "/usr/local/bin/dymola"
-    dymolawhl = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
     verbose = True
     force = True
 
@@ -125,9 +130,9 @@ def test_basicConversion(mo, outdir):
         flags,
         type,
         version,
-        dymola,
-        dymolapath,
-        dymolawhl,
+        DYMOLA_PATH,
+        DYMOLA_EXECUTABLE,
+        DYMOLA_WHL,
         verbose,
         force,
     )
@@ -136,4 +141,4 @@ def test_basicConversion(mo, outdir):
     checkFmuFileExist(fmuPath, outdir)
 
     # check model validity of the fmu
-    checkFmuValidity(fmuPath, fmuDymola, dymolapath)
+    checkFmuValidity(fmuPath, fmuDymola, DYMOLA_EXECUTABLE)

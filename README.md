@@ -4,12 +4,53 @@ Modelica to FMU converter based on dymola
 
 ## Installation
 
+### From PyPI (Recommended)
+
+Install the latest stable release from PyPI:
+
 ```console
-uv venv
-source .venv/bin/activate
-uv pip install -r pyproject.toml --extra dev --extra test
-uv pip install .
+pip install feelpp-mo2fmu
 ```
+
+Or using uv (faster):
+
+```console
+uv pip install feelpp-mo2fmu
+```
+
+### From Source
+
+For development or to use the latest unreleased features:
+
+```console
+git clone https://github.com/feelpp/mo2fmu.git
+cd mo2fmu
+uv venv .venv-mo2fmu
+source .venv-mo2fmu/bin/activate  # On Windows: .venv-mo2fmu\Scripts\activate
+uv pip install -e ".[all]"
+```
+
+## Configuration
+
+### Dymola Location
+
+The Dymola installation location can be configured via environment variables:
+
+```bash
+export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+```
+
+These environment variables are used by:
+- Tests (avoiding hardcoded paths)
+- CI/CD workflows
+- Command-line interface defaults
+
+**Environment Variables:**
+- `DYMOLA_ROOT`: Path to Dymola installation root directory (default: `/opt/dymola-2025xRefresh1-x86_64/`)
+- `DYMOLA_EXECUTABLE`: Path to Dymola executable binary (default: `/usr/local/bin/dymola`)
+- `DYMOLA_WHL`: Relative path to Dymola Python wheel from DYMOLA_ROOT (default: `Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl`)
 
 ## Usage in command line
 
