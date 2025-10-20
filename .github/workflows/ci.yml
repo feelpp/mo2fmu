@@ -43,10 +43,11 @@ jobs:
 
       - name: Code Quality Checks
         run: |
-          uv run --python .venv-mo2fmu ruff check src/python tests
-          uv run --python .venv-mo2fmu black --check src/python tests
-          uv run --python .venv-mo2fmu flake8 src/python tests
-          uv run --python .venv-mo2fmu mypy src/python
+          source .venv-mo2fmu/bin/activate
+          ruff check src/python tests
+          black --check src/python tests
+          flake8 src/python tests
+          mypy src/python
 
       - name: Build mo2fmu wheel
         run: |
@@ -54,7 +55,8 @@ jobs:
 
       - name: Python Tests
         run: |
-          uv run --python .venv-mo2fmu pytest --cov=feelpp.mo2fmu --cov-report=term-missing --cov-report=xml
+          source .venv-mo2fmu/bin/activate
+          pytest --cov=feelpp.mo2fmu --cov-report=term-missing --cov-report=xml
 
         env:
           PYTHONPATH: ${{ github.workspace }}
@@ -107,7 +109,7 @@ jobs:
 
       - name: Build Antora site
         run: |
-          source .venv/bin/activate
+          source .venv-mo2fmu/bin/activate
           npm install
           npm run antora || true
           npm run antora
