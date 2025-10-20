@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04]
+        os: [ubuntu-24.04]
     name: Build wheel package
     if: "!contains(github.event.head_commit.message, 'skip wheel')"
     steps:
@@ -48,12 +48,6 @@ jobs:
           pipx run build
           uv pip install dist/*.whl
 
-      - name: Sleep to avoid dymola license conflit
-        if: matrix.os == 'ubuntu-24.04'
-        run: |
-          echo "Sleeping to wait dymola license availability"
-          sleep 120
-
       - name: Python Tests
         run: |
           source .venv/bin/activate
@@ -75,7 +69,7 @@ jobs:
     runs-on: self-${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04]
+        os: [ubuntu-24.04]
     name: Build & Deploy docs
     if: "!contains(github.event.head_commit.message, 'skip docs')"
     steps:
@@ -119,7 +113,7 @@ jobs:
           GIRDER_API_KEY: ${{ secrets.GIRDER }}
 
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-22.04'
+        if: github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-24.04'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
