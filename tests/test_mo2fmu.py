@@ -99,7 +99,7 @@ def test_basicConversion(mo, outdir):
     version = "2"
     dymola = "/opt/dymola-2025xRefresh1-x86_64/"
     dymolapath = "/usr/local/bin/dymola"
-    dymolaegg = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
+    dymolawhl = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
     verbose = True
     force = True
 
@@ -108,7 +108,7 @@ def test_basicConversion(mo, outdir):
     fmuDymola = f"{baseName}_fmu"
 
     # call mo2fmu converter
-    mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force)
+    mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolawhl, verbose, force)
 
     # check if the FMU file is created
     checkFmuFileExist(fmuPath, outdir)

@@ -8,7 +8,7 @@ import click
 import spdlog as spd
 
 
-def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force):
+def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolawhl, verbose, force):
     """
     mo2fmu converts a .mo file into a .fmu
 
@@ -24,15 +24,15 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
 
     # Attempt to load Dymola’s Python interface
     try:
-        sys.path.append(str(Path(dymola) / Path(dymolaegg)))
-        logger.info("add {} to sys path".format(Path(dymola) / Path(dymolaegg)))
-        if not (Path(dymola) / Path(dymolaegg)).is_file():
-            logger.error("dymola egg {} does not exist".format(Path(dymola) / Path(dymolaegg)))
+        sys.path.append(str(Path(dymola) / Path(dymolawhl)))
+        logger.info("add {} to sys path".format(Path(dymola) / Path(dymolawhl)))
+        if not (Path(dymola) / Path(dymolawhl)).is_file():
+            logger.error("dymola whl {} does not exist".format(Path(dymola) / Path(dymolawhl)))
         import dymola
         from dymola.dymola_interface import DymolaInterface
         from dymola.dymola_exception import DymolaException
         has_dymola = True
-        logger.info("dymola is available in {}/{}".format(dymola, dymolaegg))
+        logger.info("dymola is available in {}/{}".format(dymola, dymolawhl))
     except ImportError:
         logger.info("dymola module is not available, has_dymola: {}".format(has_dymola))
     if not has_dymola:
@@ -174,9 +174,9 @@ def mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolap
               help='path to Dymola root.')
 @click.option('--dymolapath', default="/usr/local/bin/dymola", type=click.Path(),
               help='path to Dymola executable.')
-@click.option('--dymolaegg', default="Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl", type=click.Path(),
-              help='path to Dymola egg file, relative to Dymola root.')
+@click.option('--dymolawhl', default="Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl", type=click.Path(),
+              help='path to Dymola whl file, relative to Dymola root.')
 @click.option('-v', '--verbose', is_flag=True, help='verbose mode.')
 @click.option('-f', '--force', is_flag=True, help='force FMU generation even if file exists.')
-def mo2fmuCLI(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force):
-    mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolaegg, verbose, force)
+def mo2fmuCLI(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolawhl, verbose, force):
+    mo2fmu(mo, outdir, fmumodelname, load, flags, type, version, dymola, dymolapath, dymolawhl, verbose, force)

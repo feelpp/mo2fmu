@@ -40,7 +40,7 @@ Options:
   --version TEXT               the FMI version.
   --dymola PATH                path to Dymola root.
   --dymolapath PATH            path to Dymola executable.
-  --dymolaegg PATH             path to Dymola egg file, relative to Dymola
+  --dymolawhl PATH             path to Dymola whl file, relative to Dymola
                                root.
   -v, --verbose                verbose mode.
   -f, --force                  force FMU generation even if file exists.
@@ -64,7 +64,7 @@ mo2fmu(
     fmi_version="2.0",
     dymola_root="/path/to/dymola/root",
     dymola_executable="/path/to/dymola/executable",
-    dymola_egg="/path/to/dymola.egg",
+    dymola_whl="/path/to/dymola.whl",
     verbose=True,
     force=False
 )
