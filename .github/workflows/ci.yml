@@ -10,7 +10,7 @@ on:
 jobs:
 
   build_wheel:
-    runs-on: self-${{ matrix.os }}
+    runs-on: [self-hosted, ubuntu-24.04, gaya]
     continue-on-error: true
     strategy:
       fail-fast: false
@@ -71,7 +71,7 @@ jobs:
 
   build_docs:
     needs: build_wheel
-    runs-on: self-${{ matrix.os }}
+    runs-on: [self-hosted, ubuntu-24.04, gaya]
     strategy:
       matrix:
         os: [ubuntu-24.04]
@@ -132,6 +132,9 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    environment:
+      name: pypi
+      url: https://pypi.org/p/feelpp-mo2fmu
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
