@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Examples :: Modelica to FMU converter</title>
+    <link rel="canonical" href="https://feelpp.github.io/mo2fmu/mo2fmu/examples.html">
+    <meta name="generator" content="Antora 3.1.10">
+<link rel="stylesheet" href="../_/css/site.css">
+
+<!-- Font Awesome webfont CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<link rel="icon" href="../_/img/favicon.ico" type="image/x-icon">
+<script>!function(l,p){if(l.protocol!==p&&l.host=="docs.antora.org"){l.protocol=p}else if(/\.gitlab\.io$/.test(l.host)){l.replace(p+"//docs.antora.org"+l.pathname.substr(l.pathname.indexOf("/",1))+l.search+l.hash)}}(location,"https:")</script>
+
+<script src="../_/js/vendor/tabs-block-extension.js"></script>
+<script src="../_/js/vendor/tabs-block-behavior.js"></script>
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  messageStyle: "none",
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+
+  TeX: {
+      Macros: {
+      bold: ["{\\bf #1}",1],
+      calTh: "{\\mathcal{T}_h}",
+      card: ["{\\operatorname{card}(#1)}",1],
+      card: ["{\\operatorname{card}(#1)}",1],
+      Ck: ["{\\mathcal{C}^{#1}}",1],
+      deformt: ["{\\mathbf{\\varepsilon(#1)}}",1],
+      diam: "{\\operatorname{diam}}",
+      dim: ["{\\operatorname{dim}(#1)}",1],
+      disp: ["{\\mathbf{#1}}",1],
+      domain: "{\\Omega}",
+      ds: "",
+      essinf: "{\\operatorname{ess}\\, \\operatorname{inf}}",
+      F:"{\\mathcal{F}}",
+      geo: "{\\mathrm{geo}}",
+      Ich: ["{\\mathcal{I}^{#1}_{c,h}#2}",2],
+      Id: "{\\mathcal{I}}",
+      Ilag: ["{\\mathcal{I}^{\\mathrm{lag}}_{#1}}",1],
+      jump: ["{[\\![ #1 ]\\!]}",1],
+      n:"{\\mathbf{n}}",
+      Ne: "{N_{\\mathrm{e}}}",
+      Next: "{\\mathrm{n}}",
+      nf: "{n_f}",
+      ngeo: "{n_{\\mathrm{geo}}}",
+      Nma: "{N_{\\mathrm{ma}}}",
+      NN: "{\\mathbb N}",
+      Nno: "{N_{\\mathrm{no}}}",
+      Nso: "{N_{\\mathrm{so}}}",
+      opdim: "{\\operatorname{dim}}",
+      p: "{\\mathrm{p}}",
+      P:"{\\mathcal{P}}",
+      Pch: ["{P^{#1}_{c,h}}",1],
+      Pcho: ["{P^{#1}_{c,h,0}}",1],
+      Pk: ["{\\mathcal{P}^{#1}}",1],
+      poly: ["{\\mathbb{#1}",1],
+      poly: ["{\\mathbb{#1}}",1],
+      prect: ["{\\left\\(#1\\right\\)}",1],
+      q:"{\\mathbf{q}}",
+      Qch: ["{Q^{#1}_{c,h}}",1],
+      Qk: ["{\\mathcal{Q}^{#1}}",1],
+      R: ["{\\mathbb{R}^{#1}}",1],
+      RR: "{\\mathbb R}",
+      set: ["{\\left\\{#1\\right\\}}",1],
+      stresst: ["{\\mathbf{\\sigma(#1)}}",1],
+      T:"{\\mathcal{T}}",
+      tr: "{\\operatorname{tr}}",
+      v:"{\\mathbf{v}}",
+      vertiii: ["\\left\\vert\\kern-0.25ex\\left\\vert\\kern-0.25ex\\left\\vert #1 \\right\\vert\\kern-0.25ex\\right\\vert\\kern-0.25ex\\right\\vert",1]
+  },
+  extensions: ["mhchem.js"] 
+  }
+});
+</script>
+<!--<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"></script>-->
+<!-- <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script> -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_CHTML'></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.6.0/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>-->
+
+<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css" integrity="sha384-TEMocfGvRuD1rIAacqrknm5BQZ7W7uWitoih+jMNFXQIbNl16bO8OZmylH/Vi/Ei" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js" integrity="sha384-jmxIlussZWB7qCuB+PgKG1uLjjxbVVIayPJwi6cG6Zb4YKq0JIw+OMnkkEC7kYCq" crossorigin="anonymous"></script>-->
+<script>var uiRootPath = '../_'</script>
+
+  </head>
+  <body class="article">
+<header class="header">
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark navbar-template-project" style="border-top: 4px solid #9E9E9E">
+        <div class="navbar-brand">
+            <div class="navbar-item feelpp-logo">
+                <a href="https://feelpp.github.io/mo2fmu">Modelica to FMU converter</a>
+            </div>
+            <button class="navbar-burger" data-target="topbar-nav">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        <div id="topbar-nav" class="navbar-menu">
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <a href="https://docs.feelpp.org/">Documentation Reference</a>
+                </div>
+                <div class="navbar-item has-dropdown is-hoverable download-item">
+                    <div class="navbar-item"><a href="https://docs.feelpp.org/user/latest/install/index.html" class="download-btn">Get Feel++</a></div>
+                </div>
+                <div class="navbar-item">
+                    <a class="navbar-brand"  href="https://www.cemosis.fr">
+                        <img class="cemosis-logo"  src="../_/img/cemosis-logo.svg" alt="Cemosis logo"/>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="body">
+<a href="#" class="menu-expand-toggle"></a>
+<div class="nav-container" data-component="mo2fmu" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html">Modelica to FMU converter</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="overview.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="quickstart.html">Quickstart</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Usage</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="usage-cli.html">Command-Line Interface</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="usage-python.html">Python API</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="configuration.html">Configuration</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="examples.html">Examples</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="troubleshooting.html">Troubleshooting</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="faq.html">FAQ</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Development Environment</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="env/antora.html">Antora Documentation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="env/githubactions.html">GitHub Actions</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Modelica to FMU converter</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+      <li class="component is-current">
+        <a class="title" href="index.html">Modelica to FMU converter</a>
+      </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+  <button class="nav-toggle"></button>
+    <a href="index.html" class="home-link"></a>
+  <nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Modelica to FMU converter</a></li>
+    <li><a href="examples.html">Examples</a></li>
+  </ul>
+</nav>
+
+  
+    <div class="edit-this-page"><a href="https://github.com/feelpp/mo2fmu/edit/main/docs/modules/ROOT/pages/examples.adoc">Edit this Page</a></div>
+  
+  <div class="page-downloads">
+  <span class="label">Download as</span>
+  <ul class="download-options">
+    <li>
+      <a onclick="print(this)" href="#" data-toggle="tooltip" data-placement="left" title="Print to PDF"
+         class="pdf-download">
+        <img class="pdf-file-icon icon" src="../_/img/pdf.svg"/> .pdf
+      </a>
+    </li>
+  </ul>
+</div>
+</div>
+
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Examples</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page provides practical examples of using mo2fmu in various scenarios, from simple conversions to complex workflows.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basic_examples"><a class="anchor" href="#_basic_examples"></a>1. Basic Examples</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_example_1_simple_ode_model"><a class="anchor" href="#_example_1_simple_ode_model"></a>1.1. Example 1: Simple ODE Model</h3>
+<div class="paragraph">
+<p>Create a simple ordinary differential equation model:</p>
+</div>
+<div class="listingblock">
+<div class="title">ode_exp.mo</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-modelica hljs" data-lang="modelica">model ode_exp
+  parameter Real a = -1;
+  Real x(start=1);
+equation
+  der(x) = a * x;
+end ode_exp;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Convert to FMU:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu ode_exp.mo ./output</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_2_sinusoidal_model"><a class="anchor" href="#_example_2_sinusoidal_model"></a>1.2. Example 2: Sinusoidal Model</h3>
+<div class="listingblock">
+<div class="title">ode_sin.mo</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-modelica hljs" data-lang="modelica">model ode_sin
+  parameter Real omega = 1;
+  Real x(start=0);
+  Real y(start=1);
+equation
+  der(x) = omega * y;
+  der(y) = -omega * x;
+end ode_sin;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Convert with verbose output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v ode_sin.mo ./output</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_working_with_packages"><a class="anchor" href="#_working_with_packages"></a>2. Working with Packages</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_example_3_model_with_package_dependencies"><a class="anchor" href="#_example_3_model_with_package_dependencies"></a>2.1. Example 3: Model with Package Dependencies</h3>
+<div class="listingblock">
+<div class="title">MyModel.mo</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-modelica hljs" data-lang="modelica">within MyPackage;
+model MyModel
+  import Modelica.Math;
+  parameter Real frequency = 1.0;
+  Real y;
+equation
+  y = Math.sin(time * frequency);
+end MyModel;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Load the Modelica Standard Library:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --load Modelica MyModel.mo ./output</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_4_multiple_package_dependencies"><a class="anchor" href="#_example_4_multiple_package_dependencies"></a>2.2. Example 4: Multiple Package Dependencies</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --load Modelica \
+       --load Buildings \
+       --load MyCustomLibrary \
+       ComplexModel.mo ./output</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_fmi_type_selection"><a class="anchor" href="#_fmi_type_selection"></a>3. FMI Type Selection</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_example_5_co_simulation_fmu"><a class="anchor" href="#_example_5_co_simulation_fmu"></a>3.1. Example 5: Co-Simulation FMU</h3>
+<div class="paragraph">
+<p>Generate a Co-Simulation FMU for tool coupling:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --type cs model.mo ./cs_output</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_6_model_exchange_fmu"><a class="anchor" href="#_example_6_model_exchange_fmu"></a>3.2. Example 6: Model Exchange FMU</h3>
+<div class="paragraph">
+<p>Generate a Model Exchange FMU for custom solvers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --type me model.mo ./me_output</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_7_both_types"><a class="anchor" href="#_example_7_both_types"></a>3.3. Example 7: Both Types</h3>
+<div class="paragraph">
+<p>Generate an FMU containing both CS and ME:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --type all model.mo ./output</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_python_api_examples"><a class="anchor" href="#_python_api_examples"></a>4. Python API Examples</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_example_8_basic_python_script"><a class="anchor" href="#_example_8_basic_python_script"></a>4.1. Example 8: Basic Python Script</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">#!/usr/bin/env python3
+from feelpp.mo2fmu import mo2fmu
+
+def main():
+    success = mo2fmu(
+        mo="model.mo",
+        outdir="./fmus",
+        verbose=True,
+        force=True
+    )
+
+    if success:
+        print("✓ FMU generated successfully")
+        return 0
+    else:
+        print("✗ FMU generation failed")
+        return 1
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_9_batch_conversion"><a class="anchor" href="#_example_9_batch_conversion"></a>4.2. Example 9: Batch Conversion</h3>
+<div class="paragraph">
+<p>Convert multiple models in a loop:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from pathlib import Path
+from feelpp.mo2fmu import mo2fmu
+
+models = [
+    "ode_exp.mo",
+    "ode_sin.mo",
+    "spring_mass.mo"
+]
+
+output_dir = Path("./fmus")
+output_dir.mkdir(exist_ok=True)
+
+for model in models:
+    print(f"Converting {model}...")
+    success = mo2fmu(
+        mo=model,
+        outdir=str(output_dir),
+        type="cs",
+        verbose=False,
+        force=True
+    )
+    print(f"  {'✓' if success else '✗'} {model}")</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_10_configuration_from_json"><a class="anchor" href="#_example_10_configuration_from_json"></a>4.3. Example 10: Configuration from JSON</h3>
+<div class="paragraph">
+<p>Load configuration from a JSON file:</p>
+</div>
+<div class="listingblock">
+<div class="title">config.json</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "models": [
+    {
+      "mo": "model1.mo",
+      "fmumodelname": "Model1",
+      "type": "cs",
+      "load": ["Modelica"]
+    },
+    {
+      "mo": "model2.mo",
+      "fmumodelname": "Model2",
+      "type": "all",
+      "load": ["Modelica", "Buildings"]
+    }
+  ],
+  "outdir": "./fmus",
+  "dymola_root": "/opt/dymola-2025xRefresh1-x86_64/"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">convert.py</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import json
+from feelpp.mo2fmu import mo2fmu
+
+with open("config.json") as f:
+    config = json.load(f)
+
+for model_config in config["models"]:
+    print(f"Converting {model_config['mo']}...")
+
+    success = mo2fmu(
+        mo=model_config["mo"],
+        outdir=config["outdir"],
+        fmumodelname=model_config.get("fmumodelname"),
+        load=tuple(model_config.get("load", [])),
+        type=model_config.get("type", "all"),
+        dymola_root=config.get("dymola_root"),
+        verbose=True,
+        force=True
+    )
+
+    if not success:
+        print(f"Failed to convert {model_config['mo']}")</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_advanced_usage"><a class="anchor" href="#_advanced_usage"></a>5. Advanced Usage</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_example_11_custom_dymola_flags"><a class="anchor" href="#_example_11_custom_dymola_flags"></a>5.1. Example 11: Custom Dymola Flags</h3>
+<div class="paragraph">
+<p>Use specific Dymola translation flags:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v \
+  --flags "Advanced.LogEvents=true" \
+  --flags "Advanced.GenerateVariableDependencies=true" \
+  --flags "-d=initialization" \
+  model.mo ./output</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_12_environment_based_configuration"><a class="anchor" href="#_example_12_environment_based_configuration"></a>5.2. Example 12: Environment-Based Configuration</h3>
+<div class="listingblock">
+<div class="title">build_fmu.sh</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">#!/bin/bash
+
+# Configuration
+export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+
+# Model configuration
+MODEL="MyModel.mo"
+OUTPUT="./dist/fmus"
+FMI_TYPE="cs"
+
+# Create output directory
+mkdir -p "$OUTPUT"
+
+# Convert
+mo2fmu -v -f \
+  --type "$FMI_TYPE" \
+  --load Modelica \
+  "$MODEL" "$OUTPUT"
+
+# Check result
+if [ $? -eq 0 ]; then
+    echo "✓ FMU generated successfully"
+    ls -lh "$OUTPUT"/*.fmu
+else
+    echo "✗ FMU generation failed"
+    exit 1
+fi</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_13_automated_testing"><a class="anchor" href="#_example_13_automated_testing"></a>5.3. Example 13: Automated Testing</h3>
+<div class="paragraph">
+<p>Test FMU generation in a test suite:</p>
+</div>
+<div class="listingblock">
+<div class="title">test_fmu_generation.py</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import pytest
+from pathlib import Path
+from feelpp.mo2fmu import mo2fmu
+
+@pytest.fixture
+def output_dir(tmp_path):
+    """Create temporary output directory."""
+    fmu_dir = tmp_path / "fmus"
+    fmu_dir.mkdir()
+    return fmu_dir
+
+def test_simple_model_conversion(output_dir):
+    """Test conversion of a simple model."""
+    success = mo2fmu(
+        mo="ode_exp.mo",
+        outdir=str(output_dir),
+        verbose=True
+    )
+
+    assert success, "FMU conversion failed"
+
+    # Verify FMU was created
+    fmu_file = output_dir / "ode_exp.fmu"
+    assert fmu_file.exists(), "FMU file not created"
+    assert fmu_file.stat().st_size &gt; 0, "FMU file is empty"
+
+def test_cs_fmu_generation(output_dir):
+    """Test Co-Simulation FMU generation."""
+    success = mo2fmu(
+        mo="model.mo",
+        outdir=str(output_dir),
+        type="cs",
+        verbose=True
+    )
+
+    assert success, "CS FMU conversion failed"
+
+def test_with_package_loading(output_dir):
+    """Test conversion with package loading."""
+    success = mo2fmu(
+        mo="MyModel.mo",
+        outdir=str(output_dir),
+        load=("Modelica",),
+        verbose=True
+    )
+
+    assert success, "Conversion with packages failed"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run tests:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">pytest test_fmu_generation.py -v</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_14_makefile_integration"><a class="anchor" href="#_example_14_makefile_integration"></a>5.4. Example 14: Makefile Integration</h3>
+<div class="listingblock">
+<div class="title">Makefile</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-makefile hljs" data-lang="makefile"># Configuration
+MODELS := ode_exp.mo ode_sin.mo
+OUTPUT_DIR := dist/fmus
+FMI_TYPE := cs
+
+# Derived
+FMUS := $(patsubst %.mo,$(OUTPUT_DIR)/%.fmu,$(MODELS))
+
+.PHONY: all clean help
+
+all: $(FMUS)
+
+$(OUTPUT_DIR)/%.fmu: %.mo
+	@echo "Converting $&lt; to FMU..."
+	@mkdir -p $(OUTPUT_DIR)
+	mo2fmu -f --type $(FMI_TYPE) $&lt; $(OUTPUT_DIR)
+
+clean:
+	rm -rf $(OUTPUT_DIR)
+	rm -f *.mat dsin.txt dslog.txt *.log
+
+help:
+	@echo "Available targets:"
+	@echo "  all    - Build all FMUs"
+	@echo "  clean  - Remove generated files"
+	@echo "  help   - Show this help message"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make all</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_real_world_scenarios"><a class="anchor" href="#_real_world_scenarios"></a>6. Real-World Scenarios</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_example_15_building_system_model"><a class="anchor" href="#_example_15_building_system_model"></a>6.1. Example 15: Building System Model</h3>
+<div class="listingblock">
+<div class="title">HVACSystem.mo</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-modelica hljs" data-lang="modelica">within Buildings.Examples;
+model HVACSystem
+  import Buildings;
+
+  parameter Real T_setpoint = 293.15 "Temperature setpoint (K)";
+
+  Buildings.Fluid.Sources.Boundary_pT source(
+    redeclare package Medium = Buildings.Media.Air,
+    nPorts=1);
+
+  Buildings.Fluid.Actuators.Dampers.Exponential damper(
+    redeclare package Medium = Buildings.Media.Air);
+
+  // ... more components
+equation
+  // ... equations
+end HVACSystem;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Convert with Buildings library:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v \
+  --load Modelica \
+  --load Buildings \
+  --type cs \
+  --fmumodelname HVAC \
+  HVACSystem.mo ./fmus</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_16_control_system_export"><a class="anchor" href="#_example_16_control_system_export"></a>6.2. Example 16: Control System Export</h3>
+<div class="paragraph">
+<p>Export a control system for co-simulation:</p>
+</div>
+<div class="listingblock">
+<div class="title">PIDController.mo</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-modelica hljs" data-lang="modelica">model PIDController
+  parameter Real Kp = 1.0 "Proportional gain";
+  parameter Real Ki = 0.5 "Integral gain";
+  parameter Real Kd = 0.1 "Derivative gain";
+
+  input Real setpoint;
+  input Real measured;
+  output Real control;
+
+protected
+  Real error;
+  Real integral(start=0);
+  Real derivative;
+
+equation
+  error = setpoint - measured;
+  der(integral) = error;
+  derivative = der(error);
+  control = Kp * error + Ki * integral + Kd * derivative;
+end PIDController;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Generate FMU:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --type cs --fmumodelname PID PIDController.mo ./controllers</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_17_multi_domain_model"><a class="anchor" href="#_example_17_multi_domain_model"></a>6.3. Example 17: Multi-Domain Model</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from feelpp.mo2fmu import mo2fmu
+
+# Configuration for multi-domain model
+config = {
+    "mo": "MultiDomainSystem.mo",
+    "outdir": "./fmus",
+    "load": (
+        "Modelica",
+        "Buildings",
+        "ModelicaServices"
+    ),
+    "flags": (
+        "Advanced.GenerateVariableDependencies=true",
+        "Advanced.CompileWith64=2"
+    ),
+    "type": "all",
+    "verbose": True,
+    "force": True
+}
+
+success = mo2fmu(**config)
+
+if success:
+    print("Multi-domain FMU generated successfully")
+else:
+    print("Failed to generate FMU")</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_18_parameterized_model_generation"><a class="anchor" href="#_example_18_parameterized_model_generation"></a>6.4. Example 18: Parameterized Model Generation</h3>
+<div class="paragraph">
+<p>Generate multiple FMUs with different parameters:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from feelpp.mo2fmu import mo2fmu
+from pathlib import Path
+
+# Parameters to vary
+configurations = [
+    {"name": "Fast", "params": "a=-2"},
+    {"name": "Normal", "params": "a=-1"},
+    {"name": "Slow", "params": "a=-0.5"}
+]
+
+for config in configurations:
+    print(f"Generating {config['name']} configuration...")
+
+    # Would need to modify .mo file or use Modelica's parameter modification
+    # This is a simplified example
+    success = mo2fmu(
+        mo="ode_exp.mo",
+        outdir="./fmus",
+        fmumodelname=f"ode_exp_{config['name']}",
+        verbose=True,
+        force=True
+    )
+
+    if success:
+        print(f"  ✓ {config['name']} FMU generated")
+    else:
+        print(f"  ✗ {config['name']} FMU failed")</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_troubleshooting_examples"><a class="anchor" href="#_troubleshooting_examples"></a>7. Troubleshooting Examples</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_example_19_debugging_failed_conversion"><a class="anchor" href="#_example_19_debugging_failed_conversion"></a>7.1. Example 19: Debugging Failed Conversion</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import logging
+from feelpp.mo2fmu import mo2fmu
+
+# Enable maximum verbosity
+logging.basicConfig(level=logging.DEBUG)
+
+# Try conversion with verbose mode
+print("Attempting FMU conversion...")
+success = mo2fmu(
+    mo="problematic_model.mo",
+    outdir="./debug_output",
+    verbose=True,  # Enable mo2fmu verbose
+    force=True
+)
+
+if not success:
+    print("\nConversion failed. Check:")
+    print("1. Dymola paths in environment variables")
+    print("2. Model syntax errors")
+    print("3. Package dependencies")
+    print("4. Dymola license")</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_20_retry_with_fallback"><a class="anchor" href="#_example_20_retry_with_fallback"></a>7.2. Example 20: Retry with Fallback</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from feelpp.mo2fmu import mo2fmu
+import time
+
+def convert_with_retry(mo_file, output_dir, max_attempts=3):
+    """Try conversion with exponential backoff."""
+    for attempt in range(max_attempts):
+        if attempt &gt; 0:
+            wait_time = 2 ** attempt
+            print(f"Waiting {wait_time}s before retry...")
+            time.sleep(wait_time)
+
+        print(f"Attempt {attempt + 1}/{max_attempts}")
+        success = mo2fmu(
+            mo=mo_file,
+            outdir=output_dir,
+            verbose=True,
+            force=True
+        )
+
+        if success:
+            print(f"Success on attempt {attempt + 1}")
+            return True
+
+    print(f"Failed after {max_attempts} attempts")
+    return False
+
+# Usage
+convert_with_retry("model.mo", "./output")</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next_steps"><a class="anchor" href="#_next_steps"></a>8. Next Steps</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Review <a href="usage-cli.html" class="xref page">CLI options</a> for command-line usage</p>
+</li>
+<li>
+<p>Check <a href="usage-python.html" class="xref page">Python API</a> for programmatic access</p>
+</li>
+<li>
+<p>See <a href="configuration.html" class="xref page">configuration guide</a> for setup details</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer" style="border-top: 2px solid #e9e9e9; background-color: #fafafa; padding-bottom: 2em; padding-top: 2em;">
+    <div class="container" style="display: flex; flex-direction: column; align-items: center; gap: 0.5em;">
+        <div>
+            <a href="https://www.cemosis.fr">
+                <img src="../_/img/cemosis-logo.svg" alt="Cemosis logo" height="50">
+            </a>
+        </div>
+        <span style="font-size: 0.8rem; color: #9e9e9e">© 2025 <a href="https://www.cemosis.fr" style="text-decoration: underline;">Cemosis</a>, Université de Strasbourg</span>
+    </div>
+</footer>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+
+
+<!-- Font Awesome JS removed to use webfont icons only -->
+<script async src="../_/js/vendor/highlight.js"></script>
+
+<script src="../_/js/vendor/lunr.js"></script>
+
+<script type="text/javascript">
+function toggleFullScreen() {
+   var doc = window.document;
+   var docEl = doc.documentElement;
+
+   var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+   var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+   if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+       requestFullScreen.call(docEl);
+   }
+   else {
+       cancelFullScreen.call(doc);
+   }
+}
+</script>
+  </body>
+</html>

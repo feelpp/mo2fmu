@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Frequently Asked Questions :: Modelica to FMU converter</title>
+    <link rel="canonical" href="https://feelpp.github.io/mo2fmu/mo2fmu/faq.html">
+    <meta name="generator" content="Antora 3.1.10">
+<link rel="stylesheet" href="../_/css/site.css">
+
+<!-- Font Awesome webfont CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<link rel="icon" href="../_/img/favicon.ico" type="image/x-icon">
+<script>!function(l,p){if(l.protocol!==p&&l.host=="docs.antora.org"){l.protocol=p}else if(/\.gitlab\.io$/.test(l.host)){l.replace(p+"//docs.antora.org"+l.pathname.substr(l.pathname.indexOf("/",1))+l.search+l.hash)}}(location,"https:")</script>
+
+<script src="../_/js/vendor/tabs-block-extension.js"></script>
+<script src="../_/js/vendor/tabs-block-behavior.js"></script>
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  messageStyle: "none",
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+
+  TeX: {
+      Macros: {
+      bold: ["{\\bf #1}",1],
+      calTh: "{\\mathcal{T}_h}",
+      card: ["{\\operatorname{card}(#1)}",1],
+      card: ["{\\operatorname{card}(#1)}",1],
+      Ck: ["{\\mathcal{C}^{#1}}",1],
+      deformt: ["{\\mathbf{\\varepsilon(#1)}}",1],
+      diam: "{\\operatorname{diam}}",
+      dim: ["{\\operatorname{dim}(#1)}",1],
+      disp: ["{\\mathbf{#1}}",1],
+      domain: "{\\Omega}",
+      ds: "",
+      essinf: "{\\operatorname{ess}\\, \\operatorname{inf}}",
+      F:"{\\mathcal{F}}",
+      geo: "{\\mathrm{geo}}",
+      Ich: ["{\\mathcal{I}^{#1}_{c,h}#2}",2],
+      Id: "{\\mathcal{I}}",
+      Ilag: ["{\\mathcal{I}^{\\mathrm{lag}}_{#1}}",1],
+      jump: ["{[\\![ #1 ]\\!]}",1],
+      n:"{\\mathbf{n}}",
+      Ne: "{N_{\\mathrm{e}}}",
+      Next: "{\\mathrm{n}}",
+      nf: "{n_f}",
+      ngeo: "{n_{\\mathrm{geo}}}",
+      Nma: "{N_{\\mathrm{ma}}}",
+      NN: "{\\mathbb N}",
+      Nno: "{N_{\\mathrm{no}}}",
+      Nso: "{N_{\\mathrm{so}}}",
+      opdim: "{\\operatorname{dim}}",
+      p: "{\\mathrm{p}}",
+      P:"{\\mathcal{P}}",
+      Pch: ["{P^{#1}_{c,h}}",1],
+      Pcho: ["{P^{#1}_{c,h,0}}",1],
+      Pk: ["{\\mathcal{P}^{#1}}",1],
+      poly: ["{\\mathbb{#1}",1],
+      poly: ["{\\mathbb{#1}}",1],
+      prect: ["{\\left\\(#1\\right\\)}",1],
+      q:"{\\mathbf{q}}",
+      Qch: ["{Q^{#1}_{c,h}}",1],
+      Qk: ["{\\mathcal{Q}^{#1}}",1],
+      R: ["{\\mathbb{R}^{#1}}",1],
+      RR: "{\\mathbb R}",
+      set: ["{\\left\\{#1\\right\\}}",1],
+      stresst: ["{\\mathbf{\\sigma(#1)}}",1],
+      T:"{\\mathcal{T}}",
+      tr: "{\\operatorname{tr}}",
+      v:"{\\mathbf{v}}",
+      vertiii: ["\\left\\vert\\kern-0.25ex\\left\\vert\\kern-0.25ex\\left\\vert #1 \\right\\vert\\kern-0.25ex\\right\\vert\\kern-0.25ex\\right\\vert",1]
+  },
+  extensions: ["mhchem.js"] 
+  }
+});
+</script>
+<!--<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"></script>-->
+<!-- <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script> -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_CHTML'></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.6.0/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>-->
+
+<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css" integrity="sha384-TEMocfGvRuD1rIAacqrknm5BQZ7W7uWitoih+jMNFXQIbNl16bO8OZmylH/Vi/Ei" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js" integrity="sha384-jmxIlussZWB7qCuB+PgKG1uLjjxbVVIayPJwi6cG6Zb4YKq0JIw+OMnkkEC7kYCq" crossorigin="anonymous"></script>-->
+<script>var uiRootPath = '../_'</script>
+
+  </head>
+  <body class="article">
+<header class="header">
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark navbar-template-project" style="border-top: 4px solid #9E9E9E">
+        <div class="navbar-brand">
+            <div class="navbar-item feelpp-logo">
+                <a href="https://feelpp.github.io/mo2fmu">Modelica to FMU converter</a>
+            </div>
+            <button class="navbar-burger" data-target="topbar-nav">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        <div id="topbar-nav" class="navbar-menu">
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <a href="https://docs.feelpp.org/">Documentation Reference</a>
+                </div>
+                <div class="navbar-item has-dropdown is-hoverable download-item">
+                    <div class="navbar-item"><a href="https://docs.feelpp.org/user/latest/install/index.html" class="download-btn">Get Feel++</a></div>
+                </div>
+                <div class="navbar-item">
+                    <a class="navbar-brand"  href="https://www.cemosis.fr">
+                        <img class="cemosis-logo"  src="../_/img/cemosis-logo.svg" alt="Cemosis logo"/>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="body">
+<a href="#" class="menu-expand-toggle"></a>
+<div class="nav-container" data-component="mo2fmu" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html">Modelica to FMU converter</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="overview.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="quickstart.html">Quickstart</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Usage</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="usage-cli.html">Command-Line Interface</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="usage-python.html">Python API</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="configuration.html">Configuration</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="examples.html">Examples</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="troubleshooting.html">Troubleshooting</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="faq.html">FAQ</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Development Environment</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="env/antora.html">Antora Documentation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="env/githubactions.html">GitHub Actions</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Modelica to FMU converter</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+      <li class="component is-current">
+        <a class="title" href="index.html">Modelica to FMU converter</a>
+      </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+  <button class="nav-toggle"></button>
+    <a href="index.html" class="home-link"></a>
+  <nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Modelica to FMU converter</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+</nav>
+
+  
+    <div class="edit-this-page"><a href="https://github.com/feelpp/mo2fmu/edit/main/docs/modules/ROOT/pages/faq.adoc">Edit this Page</a></div>
+  
+  <div class="page-downloads">
+  <span class="label">Download as</span>
+  <ul class="download-options">
+    <li>
+      <a onclick="print(this)" href="#" data-toggle="tooltip" data-placement="left" title="Print to PDF"
+         class="pdf-download">
+        <img class="pdf-file-icon icon" src="../_/img/pdf.svg"/> .pdf
+      </a>
+    </li>
+  </ul>
+</div>
+</div>
+
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Frequently Asked Questions</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Common questions and answers about mo2fmu.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_general"><a class="anchor" href="#_general"></a>1. General</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_what_is_mo2fmu"><a class="anchor" href="#_what_is_mo2fmu"></a>1.1. What is mo2fmu?</h3>
+<div class="paragraph">
+<p>mo2fmu is a Python package that converts Modelica models (<code>.mo</code> files) into Functional Mock-up Units (FMUs) using Dymola. It provides both a command-line interface and a Python API for easy integration into workflows.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_what_is_an_fmu"><a class="anchor" href="#_what_is_an_fmu"></a>1.2. What is an FMU?</h3>
+<div class="paragraph">
+<p>An FMU (Functional Mock-up Unit) is a standardized format for exchanging dynamic models. FMUs follow the Functional Mock-up Interface (FMI) standard, allowing models created in one tool to be used in another.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_do_i_need_dymola_to_use_mo2fmu"><a class="anchor" href="#_do_i_need_dymola_to_use_mo2fmu"></a>1.3. Do I need Dymola to use mo2fmu?</h3>
+<div class="paragraph">
+<p>Yes, mo2fmu requires a Dymola installation with a valid license. Dymola is used internally to translate Modelica models to FMUs.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_is_mo2fmu_free"><a class="anchor" href="#_is_mo2fmu_free"></a>1.4. Is mo2fmu free?</h3>
+<div class="paragraph">
+<p>Yes, mo2fmu itself is free and open source (MIT License). However, you need a licensed copy of Dymola to use it.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_what_fmi_versions_are_supported"><a class="anchor" href="#_what_fmi_versions_are_supported"></a>1.5. What FMI versions are supported?</h3>
+<div class="paragraph">
+<p>Currently, mo2fmu supports FMI 2.0. Support for FMI 3.0 may be added in future versions.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installation"><a class="anchor" href="#_installation"></a>2. Installation</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_how_do_i_install_mo2fmu"><a class="anchor" href="#_how_do_i_install_mo2fmu"></a>2.1. How do I install mo2fmu?</h3>
+<div class="paragraph">
+<p>Install via pip:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">pip install feelpp-mo2fmu</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or with uv (faster):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">uv pip install feelpp-mo2fmu</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="quickstart.html" class="xref page">Quickstart</a> for details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_what_python_versions_are_supported"><a class="anchor" href="#_what_python_versions_are_supported"></a>2.2. What Python versions are supported?</h3>
+<div class="paragraph">
+<p>mo2fmu requires Python 3.8.1 or higher. It&#8217;s tested on Python 3.9, 3.10, 3.11, 3.12, and 3.13.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_install_from_source"><a class="anchor" href="#_can_i_install_from_source"></a>2.3. Can I install from source?</h3>
+<div class="paragraph">
+<p>Yes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">git clone https://github.com/feelpp/mo2fmu.git
+cd mo2fmu
+pip install -e ".[all]"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_what_dependencies_does_mo2fmu_have"><a class="anchor" href="#_what_dependencies_does_mo2fmu_have"></a>2.4. What dependencies does mo2fmu have?</h3>
+<div class="paragraph">
+<p>Core dependencies:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>click</code> - Command-line interface</p>
+</li>
+<li>
+<p><code>spdlog</code> - Logging</p>
+</li>
+<li>
+<p><code>xvfbwrapper</code> - Virtual framebuffer (Linux)</p>
+</li>
+<li>
+<p><code>pathlib</code> - Path manipulation</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Plus Dymola&#8217;s Python interface.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_usage"><a class="anchor" href="#_usage"></a>3. Usage</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_how_do_i_convert_a_modelica_file_to_fmu"><a class="anchor" href="#_how_do_i_convert_a_modelica_file_to_fmu"></a>3.1. How do I convert a Modelica file to FMU?</h3>
+<div class="paragraph">
+<p>Simple command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu model.mo ./output</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="usage-cli.html" class="xref page">CLI Usage</a> for more options.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_use_mo2fmu_in_python_scripts"><a class="anchor" href="#_can_i_use_mo2fmu_in_python_scripts"></a>3.2. Can I use mo2fmu in Python scripts?</h3>
+<div class="paragraph">
+<p>Yes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from feelpp.mo2fmu import mo2fmu
+
+mo2fmu("model.mo", "./output", verbose=True)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="usage-python.html" class="xref page">Python API</a> for details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_do_i_load_additional_modelica_packages"><a class="anchor" href="#_how_do_i_load_additional_modelica_packages"></a>3.3. How do I load additional Modelica packages?</h3>
+<div class="paragraph">
+<p>Use the <code>--load</code> option:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --load Modelica --load Buildings model.mo ./output</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_whats_the_difference_between_cs_and_me_fmus"><a class="anchor" href="#_whats_the_difference_between_cs_and_me_fmus"></a>3.4. What&#8217;s the difference between CS and ME FMUs?</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>CS (Co-Simulation)</strong>: FMU includes a solver, acts as a black box. Easier to use.</p>
+</li>
+<li>
+<p><strong>ME (Model Exchange)</strong>: FMU provides equations only, requires external solver. More flexible.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Use <code>--type cs</code> or <code>--type me</code> to specify, or <code>--type all</code> for both.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_customize_the_fmu_name"><a class="anchor" href="#_can_i_customize_the_fmu_name"></a>3.5. Can I customize the FMU name?</h3>
+<div class="paragraph">
+<p>Yes, use <code>--fmumodelname</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --fmumodelname CustomName model.mo ./output</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Creates <code>CustomName.fmu</code> instead of <code>model.fmu</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_do_i_overwrite_an_existing_fmu"><a class="anchor" href="#_how_do_i_overwrite_an_existing_fmu"></a>3.6. How do I overwrite an existing FMU?</h3>
+<div class="paragraph">
+<p>Use the <code>-f</code> or <code>--force</code> flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -f model.mo ./output</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration"><a class="anchor" href="#_configuration"></a>4. Configuration</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_how_do_i_configure_dymola_paths"><a class="anchor" href="#_how_do_i_configure_dymola_paths"></a>4.1. How do I configure Dymola paths?</h3>
+<div class="paragraph">
+<p>Set environment variables:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="configuration.html" class="xref page">Configuration</a> for details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_where_can_i_find_the_dymola_python_wheel"><a class="anchor" href="#_where_can_i_find_the_dymola_python_wheel"></a>4.2. Where can I find the Dymola Python wheel?</h3>
+<div class="paragraph">
+<p>The wheel is typically at:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$DYMOLA_ROOT/Modelica/Library/python_interface/dymola-&lt;version&gt;-py3-none-any.whl</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To find it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">find $DYMOLA_ROOT -name "dymola*.whl"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_use_different_dymola_versions"><a class="anchor" href="#_can_i_use_different_dymola_versions"></a>4.3. Can I use different Dymola versions?</h3>
+<div class="paragraph">
+<p>Yes, mo2fmu works with Dymola 2024x and 2025x. Just configure the appropriate paths for your version.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_do_i_need_x11_on_linux"><a class="anchor" href="#_do_i_need_x11_on_linux"></a>4.4. Do I need X11 on Linux?</h3>
+<div class="paragraph">
+<p>No, mo2fmu uses Xvfb (virtual framebuffer) for headless operation. Just ensure Xvfb is installed:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sudo apt-get install xvfb</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_features"><a class="anchor" href="#_features"></a>5. Features</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_what_fmi_types_can_mo2fmu_generate"><a class="anchor" href="#_what_fmi_types_can_mo2fmu_generate"></a>5.1. What FMI types can mo2fmu generate?</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>cs</code> - Co-Simulation</p>
+</li>
+<li>
+<p><code>me</code> - Model Exchange</p>
+</li>
+<li>
+<p><code>all</code> - Both CS and ME</p>
+</li>
+<li>
+<p><code>csSolver</code> - Co-Simulation with solver</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_are_the_generated_fmus_license_free"><a class="anchor" href="#_are_the_generated_fmus_license_free"></a>5.2. Are the generated FMUs license-free?</h3>
+<div class="paragraph">
+<p>Yes! mo2fmu automatically enables Dymola&#8217;s code export feature (<code>Advanced.EnableCodeExport=true</code>), which creates FMUs that don&#8217;t require a Dymola license to run.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_what_optimizations_are_applied"><a class="anchor" href="#_what_optimizations_are_applied"></a>5.3. What optimizations are applied?</h3>
+<div class="paragraph">
+<p>mo2fmu automatically configures:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>64-bit only compilation</p>
+</li>
+<li>
+<p>Code export enabled</p>
+</li>
+<li>
+<p>Full compiler optimizations</p>
+</li>
+<li>
+<p>License-free execution</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_pass_custom_dymola_flags"><a class="anchor" href="#_can_i_pass_custom_dymola_flags"></a>5.4. Can I pass custom Dymola flags?</h3>
+<div class="paragraph">
+<p>Yes, use <code>--flags</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --flags "Advanced.LogEvents=true" model.mo ./output</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_does_mo2fmu_support_windows"><a class="anchor" href="#_does_mo2fmu_support_windows"></a>5.5. Does mo2fmu support Windows?</h3>
+<div class="paragraph">
+<p>Yes, mo2fmu works on Windows, Linux, and macOS. The commands are the same across platforms.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a>6. Troubleshooting</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_why_does_mo2fmu_say_dymola_is_not_available"><a class="anchor" href="#_why_does_mo2fmu_say_dymola_is_not_available"></a>6.1. Why does mo2fmu say "dymola is not available"?</h3>
+<div class="paragraph">
+<p>This usually means:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Dymola paths are not configured correctly</p>
+</li>
+<li>
+<p>The Dymola wheel file doesn&#8217;t exist</p>
+</li>
+<li>
+<p>Permissions issues</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>See <a href="troubleshooting.html#dymola-not-found" class="xref page">Troubleshooting: Dymola Not Found</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_why_does_fmu_generation_fail"><a class="anchor" href="#_why_does_fmu_generation_fail"></a>6.2. Why does FMU generation fail?</h3>
+<div class="paragraph">
+<p>Common causes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Syntax errors in Modelica model</p>
+</li>
+<li>
+<p>Missing package dependencies</p>
+</li>
+<li>
+<p>Dymola license issues</p>
+</li>
+<li>
+<p>Incorrect configuration</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Use <code>-v</code> flag for detailed error messages:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v model.mo ./output</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_do_i_debug_conversion_failures"><a class="anchor" href="#_how_do_i_debug_conversion_failures"></a>6.3. How do I debug conversion failures?</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Enable verbose mode: <code>-v</code></p>
+</li>
+<li>
+<p>Check Dymola can open your model directly</p>
+</li>
+<li>
+<p>Verify all packages are loaded</p>
+</li>
+<li>
+<p>Check license status</p>
+</li>
+<li>
+<p>Review Dymola log files</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>See <a href="troubleshooting.html" class="xref page">Troubleshooting</a> for more.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_see_what_dymola_commands_are_executed"><a class="anchor" href="#_can_i_see_what_dymola_commands_are_executed"></a>6.4. Can I see what Dymola commands are executed?</h3>
+<div class="paragraph">
+<p>Yes, use verbose mode to see detailed logging:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v model.mo ./output</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_why_is_conversion_slow"><a class="anchor" href="#_why_is_conversion_slow"></a>6.5. Why is conversion slow?</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Large or complex models take time</p>
+</li>
+<li>
+<p>Disk I/O can be a bottleneck</p>
+</li>
+<li>
+<p>Dymola compilation overhead</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Consider using an SSD and ensuring sufficient system resources.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_integration"><a class="anchor" href="#_integration"></a>7. Integration</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_can_i_use_mo2fmu_in_cicd_pipelines"><a class="anchor" href="#_can_i_use_mo2fmu_in_cicd_pipelines"></a>7.1. Can I use mo2fmu in CI/CD pipelines?</h3>
+<div class="paragraph">
+<p>Yes! mo2fmu works great in automated pipelines. See <a href="examples.html#example-10-ci-cd-pipeline-integration" class="xref page">CI/CD Example</a>.</p>
+</div>
+<div class="paragraph">
+<p>Example GitHub Actions:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: Generate FMU
+  run: mo2fmu model.mo ./output
+  env:
+    DYMOLA_ROOT: /opt/dymola-2025xRefresh1-x86_64/
+    DYMOLA_RUNTIME_LICENSE: ${{ secrets.DYMOLA_LICENSE }}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_batch_process_multiple_models"><a class="anchor" href="#_can_i_batch_process_multiple_models"></a>7.2. Can I batch process multiple models?</h3>
+<div class="paragraph">
+<p>Yes, easily with Python:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from feelpp.mo2fmu import mo2fmu
+
+models = ["model1.mo", "model2.mo", "model3.mo"]
+for model in models:
+    mo2fmu(model, "./output", force=True)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="examples.html#example-9-batch-processing" class="xref page">Batch Processing Example</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_does_mo2fmu_work_with_docker"><a class="anchor" href="#_does_mo2fmu_work_with_docker"></a>7.3. Does mo2fmu work with Docker?</h3>
+<div class="paragraph">
+<p>Yes, you can run mo2fmu in Docker containers. Ensure Dymola is installed in the container and Xvfb is available.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_use_mo2fmu_with_makefiles"><a class="anchor" href="#_can_i_use_mo2fmu_with_makefiles"></a>7.4. Can I use mo2fmu with Makefiles?</h3>
+<div class="paragraph">
+<p>Yes! See <a href="examples.html#example-14-makefile-integration" class="xref page">Makefile Integration Example</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_advanced"><a class="anchor" href="#_advanced"></a>8. Advanced</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_can_i_modify_fmu_parameters"><a class="anchor" href="#_can_i_modify_fmu_parameters"></a>8.1. Can I modify FMU parameters?</h3>
+<div class="paragraph">
+<p>Parameter modification should be done in the Modelica model before conversion. The FMU will include the parameters defined in your model.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_do_i_include_specific_variables_in_the_fmu"><a class="anchor" href="#_how_do_i_include_specific_variables_in_the_fmu"></a>8.2. How do I include specific variables in the FMU?</h3>
+<div class="paragraph">
+<p>Control variable visibility in your Modelica model using the appropriate annotations (e.g., <code>output</code>, <code>input</code>).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_generate_fmus_for_linux_windows_and_macos"><a class="anchor" href="#_can_i_generate_fmus_for_linux_windows_and_macos"></a>8.3. Can I generate FMUs for Linux, Windows, and macOS?</h3>
+<div class="paragraph">
+<p>FMUs are cross-platform by design, but the binaries are platform-specific. Generate FMUs on each target platform, or use Dymola&#8217;s cross-compilation features.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_large_are_generated_fmus"><a class="anchor" href="#_how_large_are_generated_fmus"></a>8.4. How large are generated FMUs?</h3>
+<div class="paragraph">
+<p>FMU size depends on:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Model complexity</p>
+</li>
+<li>
+<p>Included libraries</p>
+</li>
+<li>
+<p>Whether sources are included</p>
+</li>
+<li>
+<p>Platform binaries</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Typical FMUs range from a few MB to hundreds of MB.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_inspect_the_generated_fmu"><a class="anchor" href="#_can_i_inspect_the_generated_fmu"></a>8.5. Can I inspect the generated FMU?</h3>
+<div class="paragraph">
+<p>Yes, FMUs are ZIP archives. You can extract and inspect:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">unzip model.fmu -d model_fmu
+ls -lR model_fmu/</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Key contents:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>modelDescription.xml</code> - FMU metadata</p>
+</li>
+<li>
+<p><code>binaries/</code> - Platform-specific libraries</p>
+</li>
+<li>
+<p><code>sources/</code> - Model source code (if included)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_development"><a class="anchor" href="#_development"></a>9. Development</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_how_do_i_contribute_to_mo2fmu"><a class="anchor" href="#_how_do_i_contribute_to_mo2fmu"></a>9.1. How do I contribute to mo2fmu?</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Fork the repository</p>
+</li>
+<li>
+<p>Create a feature branch</p>
+</li>
+<li>
+<p>Make your changes</p>
+</li>
+<li>
+<p>Add tests</p>
+</li>
+<li>
+<p>Submit a pull request</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>See the GitHub repository: <a href="https://github.com/feelpp/mo2fmu" class="bare">github.com/feelpp/mo2fmu</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_do_i_report_bugs"><a class="anchor" href="#_how_do_i_report_bugs"></a>9.2. How do I report bugs?</h3>
+<div class="paragraph">
+<p>Report issues on GitHub Issues:
+<a href="https://github.com/feelpp/mo2fmu/issues" class="bare">github.com/feelpp/mo2fmu/issues</a></p>
+</div>
+<div class="paragraph">
+<p>Include:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>mo2fmu version</p>
+</li>
+<li>
+<p>Python version</p>
+</li>
+<li>
+<p>Dymola version</p>
+</li>
+<li>
+<p>Operating system</p>
+</li>
+<li>
+<p>Minimal reproducible example</p>
+</li>
+<li>
+<p>Error messages</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_is_there_a_mailing_list_or_forum"><a class="anchor" href="#_is_there_a_mailing_list_or_forum"></a>9.3. Is there a mailing list or forum?</h3>
+<div class="paragraph">
+<p>Use GitHub Discussions:
+<a href="https://github.com/feelpp/mo2fmu/discussions" class="bare">github.com/feelpp/mo2fmu/discussions</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_where_is_the_documentation_source"><a class="anchor" href="#_where_is_the_documentation_source"></a>9.4. Where is the documentation source?</h3>
+<div class="paragraph">
+<p>Documentation is in the <code>docs/</code> directory of the repository, written in AsciiDoc and built with Antora.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_license"><a class="anchor" href="#_license"></a>10. License</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_what_license_is_mo2fmu_under"><a class="anchor" href="#_what_license_is_mo2fmu_under"></a>10.1. What license is mo2fmu under?</h3>
+<div class="paragraph">
+<p>mo2fmu is licensed under the MIT License, which is permissive and allows commercial use.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_can_i_use_mo2fmu_in_commercial_projects"><a class="anchor" href="#_can_i_use_mo2fmu_in_commercial_projects"></a>10.2. Can I use mo2fmu in commercial projects?</h3>
+<div class="paragraph">
+<p>Yes, the MIT License allows commercial use.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_do_i_need_to_credit_mo2fmu"><a class="anchor" href="#_do_i_need_to_credit_mo2fmu"></a>10.3. Do I need to credit mo2fmu?</h3>
+<div class="paragraph">
+<p>While not required, crediting mo2fmu is appreciated. See the LICENSE file for details.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_support"><a class="anchor" href="#_support"></a>11. Support</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_where_can_i_get_help"><a class="anchor" href="#_where_can_i_get_help"></a>11.1. Where can I get help?</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Documentation: <a href="https://feelpp.github.io/mo2fmu" class="bare">feelpp.github.io/mo2fmu</a></p>
+</li>
+<li>
+<p>GitHub Issues: <a href="https://github.com/feelpp/mo2fmu/issues" class="bare">github.com/feelpp/mo2fmu/issues</a></p>
+</li>
+<li>
+<p>GitHub Discussions: <a href="https://github.com/feelpp/mo2fmu/discussions" class="bare">github.com/feelpp/mo2fmu/discussions</a></p>
+</li>
+<li>
+<p>Feel++ Community: <a href="https://feelpp.org" class="bare">feelpp.org</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_is_commercial_support_available"><a class="anchor" href="#_is_commercial_support_available"></a>11.2. Is commercial support available?</h3>
+<div class="paragraph">
+<p>For commercial support or consulting, contact the Feel++ team through <a href="https://feelpp.org" class="bare">feelpp.org</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_do_i_stay_updated"><a class="anchor" href="#_how_do_i_stay_updated"></a>11.3. How do I stay updated?</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Watch the GitHub repository</p>
+</li>
+<li>
+<p>Follow Feel++ updates</p>
+</li>
+<li>
+<p>Check the documentation for new versions</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next_steps"><a class="anchor" href="#_next_steps"></a>12. Next Steps</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Get started with <a href="quickstart.html" class="xref page">Quickstart</a></p>
+</li>
+<li>
+<p>Learn <a href="usage-cli.html" class="xref page">command-line usage</a></p>
+</li>
+<li>
+<p>Explore the <a href="usage-python.html" class="xref page">Python API</a></p>
+</li>
+<li>
+<p>Browse <a href="examples.html" class="xref page">examples</a></p>
+</li>
+<li>
+<p>Configure your <a href="configuration.html" class="xref page">environment</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer" style="border-top: 2px solid #e9e9e9; background-color: #fafafa; padding-bottom: 2em; padding-top: 2em;">
+    <div class="container" style="display: flex; flex-direction: column; align-items: center; gap: 0.5em;">
+        <div>
+            <a href="https://www.cemosis.fr">
+                <img src="../_/img/cemosis-logo.svg" alt="Cemosis logo" height="50">
+            </a>
+        </div>
+        <span style="font-size: 0.8rem; color: #9e9e9e">© 2025 <a href="https://www.cemosis.fr" style="text-decoration: underline;">Cemosis</a>, Université de Strasbourg</span>
+    </div>
+</footer>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+
+
+<!-- Font Awesome JS removed to use webfont icons only -->
+<script async src="../_/js/vendor/highlight.js"></script>
+
+<script src="../_/js/vendor/lunr.js"></script>
+
+<script type="text/javascript">
+function toggleFullScreen() {
+   var doc = window.document;
+   var docEl = doc.documentElement;
+
+   var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+   var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+   if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+       requestFullScreen.call(docEl);
+   }
+   else {
+       cancelFullScreen.call(doc);
+   }
+}
+</script>
+  </body>
+</html>

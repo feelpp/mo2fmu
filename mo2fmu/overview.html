@@ -143,12 +143,42 @@ MathJax.Hub.Config({
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="index.html">Introduction</a>
   </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="overview.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="quickstart.html">Quickstart</a>
+  </li>
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Setting up the development Environment</span>
+    <span class="nav-text">Usage</span>
 <ul class="nav-list">
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="env/antora.html">Antora Environment</a>
+    <a class="nav-link" href="usage-cli.html">Command-Line Interface</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="usage-python.html">Python API</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="configuration.html">Configuration</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="examples.html">Examples</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="troubleshooting.html">Troubleshooting</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="faq.html">FAQ</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Development Environment</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="env/antora.html">Antora Documentation</a>
   </li>
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="env/githubactions.html">GitHub Actions</a>
@@ -208,7 +238,66 @@ MathJax.Hub.Config({
 <article class="doc">
 <h1 class="page">Overview of Modelica to FMU converter</h1>
 <div class="sect1">
-<h2 id="_organisation"><a class="anchor" href="#_organisation"></a>1. Organisation</h2>
+<h2 id="_what_is_mo2fmu"><a class="anchor" href="#_what_is_mo2fmu"></a>1. What is mo2fmu?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Modelica to FMU converter is a Python package that converts Modelica models (<code>.mo</code> files) into Functional Mock-up Units (FMUs) using Dymola. FMUs are standardized simulation components that can be used across different simulation platforms supporting the Functional Mock-up Interface (FMI) standard.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_why_use_mo2fmu"><a class="anchor" href="#_why_use_mo2fmu"></a>2. Why Use mo2fmu?</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Standardization</strong>: Create FMUs that work with any FMI-compliant tool</p>
+</li>
+<li>
+<p><strong>Automation</strong>: Automate FMU generation in your CI/CD pipelines</p>
+</li>
+<li>
+<p><strong>Flexibility</strong>: Customize FMU generation with various options and flags</p>
+</li>
+<li>
+<p><strong>Integration</strong>: Easy integration with Python workflows and scripts</p>
+</li>
+<li>
+<p><strong>Performance</strong>: Generate optimized 64-bit FMUs with code export enabled</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_it_works"><a class="anchor" href="#_how_it_works"></a>3. How It Works</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>mo2fmu acts as a wrapper around Dymola&#8217;s FMU translation capabilities, providing:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Python Interface</strong>: A clean Python API for programmatic access</p>
+</li>
+<li>
+<p><strong>Command-Line Tool</strong>: Quick conversion via terminal commands</p>
+</li>
+<li>
+<p><strong>Configuration Management</strong>: Environment-based configuration for Dymola paths</p>
+</li>
+<li>
+<p><strong>Headless Operation</strong>: Uses virtual framebuffer (Xvfb) for headless Dymola execution</p>
+</li>
+<li>
+<p><strong>Error Handling</strong>: Comprehensive error reporting and logging</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_project_structure"><a class="anchor" href="#_project_structure"></a>4. Project Structure</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The directory structure of the project is as follows:</p>
@@ -216,91 +305,164 @@ MathJax.Hub.Config({
 <div class="listingblock">
 <div class="content">
 <pre>.
-├── docs
-│   ├── antora
-│   └── modules
-└── src
-    └── cases
-
-5 directories</pre>
+├── docs/                      # Documentation (Antora-based)
+│   ├── antora.yml
+│   └── modules/
+├── src/
+│   ├── cases/                 # Example Modelica files
+│   │   ├── ode_exp.mo
+│   │   └── ode_sin.mo
+│   └── python/
+│       └── feelpp/
+│           └── mo2fmu/        # Main package
+│               ├── mo2fmu.py  # Core conversion logic
+│               └── __init__.py
+├── tests/                     # Unit tests
+│   └── test_mo2fmu.py
+├── pyproject.toml            # Package configuration
+└── README.md</pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_fmi_standard_support"><a class="anchor" href="#_fmi_standard_support"></a>5. FMI Standard Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>mo2fmu supports the Functional Mock-up Interface (FMI) standard:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>The <code>docs</code> directory contains the documentation of the project and uses antora to generate the documentation.</p>
+<p><strong>FMI Versions</strong>: FMI 2.0 (default)</p>
 </li>
 <li>
-<p>The <code>src</code> directory contains initially some C++ and Python Feel++ source code of the project to help you get started.</p>
+<p><strong>FMI Types</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>CS</strong> (Co-Simulation): FMU acts as black box with solver</p>
+</li>
+<li>
+<p><strong>ME</strong> (Model Exchange): FMU provides equations, external solver needed</p>
+</li>
+<li>
+<p><strong>all</strong>: Both CS and ME in one FMU</p>
+</li>
+<li>
+<p><strong>csSolver</strong>: Co-Simulation with specific solver configuration</p>
 </li>
 </ul>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Feel++ is a C++ library for the numerical simulation of partial differential equations. It is designed to be easy to use and to extend.
-Feel++ is a free software distributed under the terms of the GNU General Public License version 3.
-The documentation is available <a href="https://docs.feelpp.org">&gt; here</a>.</p>
-</div>
-</td>
-</tr>
-</table>
+</li>
+</ul>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_how_to_build_the_project"><a class="anchor" href="#_how_to_build_the_project"></a>2. How to build the project</h2>
+<h2 id="_technical_features"><a class="anchor" href="#_technical_features"></a>6. Technical Features</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_optimization_settings"><a class="anchor" href="#_optimization_settings"></a>6.1. Optimization Settings</h3>
 <div class="paragraph">
-<p>You need first to follow the <a href="quickstart.html" class="xref page">quickstart</a> to get the Feel++ environment.
-The installation procedure uses <a href="env/cmake.html" class="xref page">Cmake</a> for the C++ programs and create a bundle of this project.
-The steps are as follows:</p>
+<p>mo2fmu automatically configures Dymola for optimal FMU generation:</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ cmake --preset default <i class="conum" data-value="1"></i><b>(1)</b>
-$ cmake --build --preset default <i class="conum" data-value="2"></i><b>(2)</b>
-$ cmake --build --preset default -t install <i class="conum" data-value="3"></i><b>(3)</b>
-$ ctest --preset default <i class="conum" data-value="4"></i><b>(4)</b>
-$ cmake --build --preset default -t package <i class="conum" data-value="5"></i><b>(5)</b></code></pre>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>64-bit Only</strong>: Forces 64-bit compilation (<code>Advanced.CompileWith64=2</code>)</p>
+</li>
+<li>
+<p><strong>Code Export</strong>: Enables license-free execution (<code>Advanced.EnableCodeExport=true</code>)</p>
+</li>
+<li>
+<p><strong>Optimizations</strong>: Full compiler optimizations (<code>Advanced.Define.GlobalOptimizations=2</code>)</p>
+</li>
+</ul>
 </div>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Configure the project</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Build the project</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Install the project</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Run the tests</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td>Package the project</td>
-</tr>
-</table>
+<div class="sect2">
+<h3 id="_dependencies"><a class="anchor" href="#_dependencies"></a>6.2. Dependencies</h3>
+<div class="paragraph">
+<p>mo2fmu requires:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Python 3.8.1 or higher</p>
+</li>
+<li>
+<p>Dymola installation with Python interface</p>
+</li>
+<li>
+<p>System dependencies:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>xvfbwrapper</code>: Virtual framebuffer for headless operation</p>
+</li>
+<li>
+<p><code>click</code>: Command-line interface</p>
+</li>
+<li>
+<p><code>spdlog</code>: Logging functionality</p>
+</li>
+<li>
+<p><code>pathlib</code>: Path manipulation</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_how_to_start_documenting_your_work"><a class="anchor" href="#_how_to_start_documenting_your_work"></a>3. How to start documenting your work</h2>
+<h2 id="_use_cases"><a class="anchor" href="#_use_cases"></a>7. Use Cases</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>The documentation is written in AsciiDoc and uses Antora to generate the documentation. Please check the project <a href="env/antora.html" class="xref page">Antora</a> page to get started.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Model Export</strong>: Convert Modelica models for use in other simulation tools</p>
+</li>
+<li>
+<p><strong>CI/CD Integration</strong>: Automate FMU generation in build pipelines</p>
+</li>
+<li>
+<p><strong>Model Distribution</strong>: Package models for distribution without sharing source</p>
+</li>
+<li>
+<p><strong>Multi-Platform Simulation</strong>: Create FMUs that work across different platforms</p>
+</li>
+<li>
+<p><strong>Co-Simulation</strong>: Enable coupling of models from different domains</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next_steps"><a class="anchor" href="#_next_steps"></a>8. Next Steps</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="quickstart.html" class="xref page">Install mo2fmu</a> and get started</p>
+</li>
+<li>
+<p>Learn about <a href="usage-cli.html" class="xref page">command-line usage</a></p>
+</li>
+<li>
+<p>Explore the <a href="usage-python.html" class="xref page">Python API</a></p>
+</li>
+<li>
+<p>Configure <a href="configuration.html" class="xref page">Dymola settings</a></p>
+</li>
+<li>
+<p>Check out <a href="examples.html" class="xref page">usage examples</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Troubleshooting :: Modelica to FMU converter</title>
+    <link rel="canonical" href="https://feelpp.github.io/mo2fmu/mo2fmu/troubleshooting.html">
+    <meta name="generator" content="Antora 3.1.10">
+<link rel="stylesheet" href="../_/css/site.css">
+
+<!-- Font Awesome webfont CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<link rel="icon" href="../_/img/favicon.ico" type="image/x-icon">
+<script>!function(l,p){if(l.protocol!==p&&l.host=="docs.antora.org"){l.protocol=p}else if(/\.gitlab\.io$/.test(l.host)){l.replace(p+"//docs.antora.org"+l.pathname.substr(l.pathname.indexOf("/",1))+l.search+l.hash)}}(location,"https:")</script>
+
+<script src="../_/js/vendor/tabs-block-extension.js"></script>
+<script src="../_/js/vendor/tabs-block-behavior.js"></script>
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  messageStyle: "none",
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+
+  TeX: {
+      Macros: {
+      bold: ["{\\bf #1}",1],
+      calTh: "{\\mathcal{T}_h}",
+      card: ["{\\operatorname{card}(#1)}",1],
+      card: ["{\\operatorname{card}(#1)}",1],
+      Ck: ["{\\mathcal{C}^{#1}}",1],
+      deformt: ["{\\mathbf{\\varepsilon(#1)}}",1],
+      diam: "{\\operatorname{diam}}",
+      dim: ["{\\operatorname{dim}(#1)}",1],
+      disp: ["{\\mathbf{#1}}",1],
+      domain: "{\\Omega}",
+      ds: "",
+      essinf: "{\\operatorname{ess}\\, \\operatorname{inf}}",
+      F:"{\\mathcal{F}}",
+      geo: "{\\mathrm{geo}}",
+      Ich: ["{\\mathcal{I}^{#1}_{c,h}#2}",2],
+      Id: "{\\mathcal{I}}",
+      Ilag: ["{\\mathcal{I}^{\\mathrm{lag}}_{#1}}",1],
+      jump: ["{[\\![ #1 ]\\!]}",1],
+      n:"{\\mathbf{n}}",
+      Ne: "{N_{\\mathrm{e}}}",
+      Next: "{\\mathrm{n}}",
+      nf: "{n_f}",
+      ngeo: "{n_{\\mathrm{geo}}}",
+      Nma: "{N_{\\mathrm{ma}}}",
+      NN: "{\\mathbb N}",
+      Nno: "{N_{\\mathrm{no}}}",
+      Nso: "{N_{\\mathrm{so}}}",
+      opdim: "{\\operatorname{dim}}",
+      p: "{\\mathrm{p}}",
+      P:"{\\mathcal{P}}",
+      Pch: ["{P^{#1}_{c,h}}",1],
+      Pcho: ["{P^{#1}_{c,h,0}}",1],
+      Pk: ["{\\mathcal{P}^{#1}}",1],
+      poly: ["{\\mathbb{#1}",1],
+      poly: ["{\\mathbb{#1}}",1],
+      prect: ["{\\left\\(#1\\right\\)}",1],
+      q:"{\\mathbf{q}}",
+      Qch: ["{Q^{#1}_{c,h}}",1],
+      Qk: ["{\\mathcal{Q}^{#1}}",1],
+      R: ["{\\mathbb{R}^{#1}}",1],
+      RR: "{\\mathbb R}",
+      set: ["{\\left\\{#1\\right\\}}",1],
+      stresst: ["{\\mathbf{\\sigma(#1)}}",1],
+      T:"{\\mathcal{T}}",
+      tr: "{\\operatorname{tr}}",
+      v:"{\\mathbf{v}}",
+      vertiii: ["\\left\\vert\\kern-0.25ex\\left\\vert\\kern-0.25ex\\left\\vert #1 \\right\\vert\\kern-0.25ex\\right\\vert\\kern-0.25ex\\right\\vert",1]
+  },
+  extensions: ["mhchem.js"] 
+  }
+});
+</script>
+<!--<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"></script>-->
+<!-- <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script> -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_CHTML'></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.6.0/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>-->
+
+<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css" integrity="sha384-TEMocfGvRuD1rIAacqrknm5BQZ7W7uWitoih+jMNFXQIbNl16bO8OZmylH/Vi/Ei" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js" integrity="sha384-jmxIlussZWB7qCuB+PgKG1uLjjxbVVIayPJwi6cG6Zb4YKq0JIw+OMnkkEC7kYCq" crossorigin="anonymous"></script>-->
+<script>var uiRootPath = '../_'</script>
+
+  </head>
+  <body class="article">
+<header class="header">
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark navbar-template-project" style="border-top: 4px solid #9E9E9E">
+        <div class="navbar-brand">
+            <div class="navbar-item feelpp-logo">
+                <a href="https://feelpp.github.io/mo2fmu">Modelica to FMU converter</a>
+            </div>
+            <button class="navbar-burger" data-target="topbar-nav">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        <div id="topbar-nav" class="navbar-menu">
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <a href="https://docs.feelpp.org/">Documentation Reference</a>
+                </div>
+                <div class="navbar-item has-dropdown is-hoverable download-item">
+                    <div class="navbar-item"><a href="https://docs.feelpp.org/user/latest/install/index.html" class="download-btn">Get Feel++</a></div>
+                </div>
+                <div class="navbar-item">
+                    <a class="navbar-brand"  href="https://www.cemosis.fr">
+                        <img class="cemosis-logo"  src="../_/img/cemosis-logo.svg" alt="Cemosis logo"/>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="body">
+<a href="#" class="menu-expand-toggle"></a>
+<div class="nav-container" data-component="mo2fmu" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html">Modelica to FMU converter</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="overview.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="quickstart.html">Quickstart</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Usage</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="usage-cli.html">Command-Line Interface</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="usage-python.html">Python API</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="configuration.html">Configuration</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="examples.html">Examples</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="troubleshooting.html">Troubleshooting</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="faq.html">FAQ</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Development Environment</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="env/antora.html">Antora Documentation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="env/githubactions.html">GitHub Actions</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Modelica to FMU converter</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+      <li class="component is-current">
+        <a class="title" href="index.html">Modelica to FMU converter</a>
+      </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+  <button class="nav-toggle"></button>
+    <a href="index.html" class="home-link"></a>
+  <nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Modelica to FMU converter</a></li>
+    <li><a href="troubleshooting.html">Troubleshooting</a></li>
+  </ul>
+</nav>
+
+  
+    <div class="edit-this-page"><a href="https://github.com/feelpp/mo2fmu/edit/main/docs/modules/ROOT/pages/troubleshooting.adoc">Edit this Page</a></div>
+  
+  <div class="page-downloads">
+  <span class="label">Download as</span>
+  <ul class="download-options">
+    <li>
+      <a onclick="print(this)" href="#" data-toggle="tooltip" data-placement="left" title="Print to PDF"
+         class="pdf-download">
+        <img class="pdf-file-icon icon" src="../_/img/pdf.svg"/> .pdf
+      </a>
+    </li>
+  </ul>
+</div>
+</div>
+
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Troubleshooting</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide helps you diagnose and fix common issues when using mo2fmu.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_common_issues"><a class="anchor" href="#_common_issues"></a>1. Common Issues</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_dymola_not_found"><a class="anchor" href="#_dymola_not_found"></a>1.1. Dymola Not Found</h3>
+<div class="paragraph">
+<p><strong>Error Message:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>dymola module is not available, has_dymola: False
+dymola is not available, mo2fmu failed</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Causes:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Dymola path environment variables not set</p>
+</li>
+<li>
+<p>Dymola wheel file not found</p>
+</li>
+<li>
+<p>Incorrect paths in configuration</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Solutions:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Verify environment variables:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">echo $DYMOLA_ROOT
+echo $DYMOLA_EXECUTABLE
+echo $DYMOLA_WHL</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Check that the wheel file exists:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">ls -l $DYMOLA_ROOT/$DYMOLA_WHL</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Find the wheel file if path is wrong:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">find $DYMOLA_ROOT -name "dymola*.whl"</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Set environment variables correctly:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_fmu_already_exists"><a class="anchor" href="#_fmu_already_exists"></a>1.2. FMU Already Exists</h3>
+<div class="paragraph">
+<p><strong>Error Message:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>model.fmu exists in ./output; use `--force` to overwrite.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Solution:</strong></p>
+</div>
+<div class="paragraph">
+<p>Use the <code>-f</code> or <code>--force</code> flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -f model.mo ./output</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or in Python:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">mo2fmu("model.mo", "./output", force=True)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_output_directory_same_as_current_directory"><a class="anchor" href="#_output_directory_same_as_current_directory"></a>1.3. Output Directory Same as Current Directory</h3>
+<div class="paragraph">
+<p><strong>Error Message:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>the destination directory should be different from /current/directory</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Cause:</strong></p>
+</div>
+<div class="paragraph">
+<p>mo2fmu prevents writing FMUs to the current working directory to avoid conflicts.</p>
+</div>
+<div class="paragraph">
+<p><strong>Solution:</strong></p>
+</div>
+<div class="paragraph">
+<p>Specify a different output directory:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu model.mo ./output    # Good
+mo2fmu model.mo ./fmus      # Good
+mo2fmu model.mo .           # Bad - same as cwd</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_license_issues"><a class="anchor" href="#_license_issues"></a>1.4. License Issues</h3>
+<div class="paragraph">
+<p><strong>Error Message:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>translateModelFMU returned False
+Dymola License Information: [license error details]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Causes:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>No valid Dymola license</p>
+</li>
+<li>
+<p>License server unreachable</p>
+</li>
+<li>
+<p>License expired</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Solutions:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Check Dymola license:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$DYMOLA_EXECUTABLE -check</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Set license file environment variable:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export DYMOLA_RUNTIME_LICENSE=/path/to/license.lic</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Verify license server connectivity:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">ping your-license-server</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Contact your Dymola license administrator</strong></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_package_loading_fails"><a class="anchor" href="#_package_loading_fails"></a>1.5. Package Loading Fails</h3>
+<div class="paragraph">
+<p><strong>Error Message:</strong>
+Errors in Dymola log indicating package cannot be loaded.</p>
+</div>
+<div class="paragraph">
+<p><strong>Causes:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Package path incorrect</p>
+</li>
+<li>
+<p>Package dependencies missing</p>
+</li>
+<li>
+<p>Package syntax errors</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Solutions:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Verify package exists:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">ls -l /path/to/package.mo</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Check package dependencies:</strong></p>
+<div class="paragraph">
+<p>Ensure all required packages are loaded:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --load Modelica --load Dependency1 --load Dependency2 model.mo ./output</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Use verbose mode to see detailed errors:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v --load MyPackage model.mo ./output</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_displayx11_errors_linux"><a class="anchor" href="#_displayx11_errors_linux"></a>1.6. Display/X11 Errors (Linux)</h3>
+<div class="paragraph">
+<p><strong>Error Message:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Error: Can't open display</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Cause:</strong></p>
+</div>
+<div class="paragraph">
+<p>Missing or misconfigured virtual framebuffer.</p>
+</div>
+<div class="paragraph">
+<p><strong>Solution:</strong></p>
+</div>
+<div class="paragraph">
+<p>Install Xvfb:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Debian/Ubuntu
+sudo apt-get install xvfb
+
+# RHEL/CentOS/Fedora
+sudo yum install xorg-x11-server-Xvfb
+
+# Arch Linux
+sudo pacman -S xorg-server-xvfb</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_permission_denied"><a class="anchor" href="#_permission_denied"></a>1.7. Permission Denied</h3>
+<div class="paragraph">
+<p><strong>Error Message:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Permission denied: '/opt/dymola-*/...'</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Causes:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Insufficient permissions to access Dymola files</p>
+</li>
+<li>
+<p>Insufficient permissions to write to output directory</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Solutions:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Fix Dymola directory permissions:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sudo chmod -R o+r /opt/dymola-*</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Create output directory with correct permissions:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mkdir -p ./output
+chmod 755 ./output</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Run with appropriate user permissions</strong></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_model_translation_fails"><a class="anchor" href="#_model_translation_fails"></a>1.8. Model Translation Fails</h3>
+<div class="paragraph">
+<p><strong>Error Message:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>translateModelFMU returned False</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Causes:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Syntax errors in Modelica model</p>
+</li>
+<li>
+<p>Missing dependencies</p>
+</li>
+<li>
+<p>Unsupported Modelica features</p>
+</li>
+<li>
+<p>Dymola configuration issues</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Solutions:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Enable verbose mode:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v model.mo ./output</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Check model syntax:</strong></p>
+<div class="paragraph">
+<p>Open the model in Dymola and check for errors.</p>
+</div>
+</li>
+<li>
+<p><strong>Verify model compiles in Dymola:</strong></p>
+<div class="paragraph">
+<p>Try translating the model directly in Dymola before using mo2fmu.</p>
+</div>
+</li>
+<li>
+<p><strong>Check Dymola log:</strong></p>
+<div class="paragraph">
+<p>Look for detailed error messages in the output.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_import_errors"><a class="anchor" href="#_import_errors"></a>1.9. Import Errors</h3>
+<div class="paragraph">
+<p><strong>Error Message:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>ModuleNotFoundError: No module named 'feelpp'</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Cause:</strong></p>
+</div>
+<div class="paragraph">
+<p>mo2fmu package not installed or not in Python path.</p>
+</div>
+<div class="paragraph">
+<p><strong>Solution:</strong></p>
+</div>
+<div class="paragraph">
+<p>Install mo2fmu:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">pip install feelpp-mo2fmu</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or for development:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">pip install -e .</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_fmu_file_not_found_after_generation"><a class="anchor" href="#_fmu_file_not_found_after_generation"></a>1.10. FMU File Not Found After Generation</h3>
+<div class="paragraph">
+<p><strong>Error Message:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Expected FMU 'model.fmu' not found in /current/directory</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Causes:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>FMU generation failed silently</p>
+</li>
+<li>
+<p>Wrong working directory</p>
+</li>
+<li>
+<p>File system issues</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Solutions:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Check Dymola error log in verbose mode</strong></p>
+</li>
+<li>
+<p><strong>Verify working directory:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import os
+print(f"Current directory: {os.getcwd()}")</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Search for FMU files:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">find . -name "*.fmu" -type f</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_debugging_techniques"><a class="anchor" href="#_debugging_techniques"></a>2. Debugging Techniques</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_enable_verbose_mode"><a class="anchor" href="#_enable_verbose_mode"></a>2.1. Enable Verbose Mode</h3>
+<div class="paragraph">
+<p>Always use verbose mode when troubleshooting:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v model.mo ./output</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or in Python:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">mo2fmu("model.mo", "./output", verbose=True)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_check_environment"><a class="anchor" href="#_check_environment"></a>2.2. Check Environment</h3>
+<div class="paragraph">
+<p>Verify your environment setup:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">#!/bin/bash
+
+echo "=== Environment Check ==="
+echo "DYMOLA_ROOT: $DYMOLA_ROOT"
+echo "DYMOLA_EXECUTABLE: $DYMOLA_EXECUTABLE"
+echo "DYMOLA_WHL: $DYMOLA_WHL"
+echo ""
+
+echo "=== Path Verification ==="
+echo -n "Dymola root exists: "
+[ -d "$DYMOLA_ROOT" ] &amp;&amp; echo "Yes" || echo "No"
+
+echo -n "Dymola executable exists: "
+[ -f "$DYMOLA_EXECUTABLE" ] &amp;&amp; echo "Yes" || echo "No"
+
+echo -n "Dymola wheel exists: "
+[ -f "$DYMOLA_ROOT/$DYMOLA_WHL" ] &amp;&amp; echo "Yes" || echo "No"
+
+echo ""
+echo "=== Python Environment ==="
+python3 --version
+python3 -c "import feelpp.mo2fmu; print('mo2fmu installed:', True)" 2&gt;/dev/null || echo "mo2fmu installed: False"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Save as <code>check_env.sh</code> and run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">chmod +x check_env.sh
+./check_env.sh</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_isolate_the_problem"><a class="anchor" href="#_isolate_the_problem"></a>2.3. Isolate the Problem</h3>
+<div class="paragraph">
+<p>Test with a minimal model:</p>
+</div>
+<div class="listingblock">
+<div class="title">minimal.mo</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-modelica hljs" data-lang="modelica">model Minimal
+  Real x(start=1);
+equation
+  der(x) = -x;
+end Minimal;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v minimal.mo ./test_output</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If this works, the issue is with your specific model.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_check_dymola_directly"><a class="anchor" href="#_check_dymola_directly"></a>2.4. Check Dymola Directly</h3>
+<div class="paragraph">
+<p>Test Dymola Python interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import sys
+from pathlib import Path
+
+# Add Dymola to path
+dymola_root = "/opt/dymola-2025xRefresh1-x86_64/"
+dymola_whl = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
+sys.path.append(str(Path(dymola_root) / Path(dymola_whl)))
+
+# Try importing
+try:
+    import dymola
+    from dymola.dymola_interface import DymolaInterface
+    print("✓ Dymola import successful")
+
+    # Try instantiating
+    dymola_interface = DymolaInterface()
+    print("✓ Dymola interface created")
+    dymola_interface.close()
+    print("✓ Dymola interface closed")
+
+except ImportError as e:
+    print(f"✗ Import error: {e}")
+except Exception as e:
+    print(f"✗ Error: {e}")</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_getting_help"><a class="anchor" href="#_getting_help"></a>3. Getting Help</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_collect_information"><a class="anchor" href="#_collect_information"></a>3.1. Collect Information</h3>
+<div class="paragraph">
+<p>When reporting issues, include:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>mo2fmu version:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">pip show feelpp-mo2fmu</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Python version:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">python3 --version</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Dymola version:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$DYMOLA_EXECUTABLE -version</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Operating system:</strong></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">uname -a</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Full error output with verbose mode</strong></p>
+</li>
+<li>
+<p><strong>Minimal reproducible example</strong></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_report_issues"><a class="anchor" href="#_report_issues"></a>3.2. Report Issues</h3>
+<div class="paragraph">
+<p>Report issues on GitHub:</p>
+</div>
+<div class="paragraph">
+<p><a href="https://github.com/feelpp/mo2fmu/issues" class="bare">github.com/feelpp/mo2fmu/issues</a></p>
+</div>
+<div class="paragraph">
+<p>Include:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Clear description of the problem</p>
+</li>
+<li>
+<p>Steps to reproduce</p>
+</li>
+<li>
+<p>Expected vs. actual behavior</p>
+</li>
+<li>
+<p>Environment information</p>
+</li>
+<li>
+<p>Error messages and logs</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_community_support"><a class="anchor" href="#_community_support"></a>3.3. Community Support</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>GitHub Discussions: <a href="https://github.com/feelpp/mo2fmu/discussions" class="bare">github.com/feelpp/mo2fmu/discussions</a></p>
+</li>
+<li>
+<p>Feel++ Website: <a href="https://feelpp.org" class="bare">feelpp.org</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_advanced_debugging"><a class="anchor" href="#_advanced_debugging"></a>4. Advanced Debugging</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_python_debugger"><a class="anchor" href="#_python_debugger"></a>4.1. Python Debugger</h3>
+<div class="paragraph">
+<p>Use pdb for detailed debugging:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import pdb
+from feelpp.mo2fmu import mo2fmu
+
+pdb.set_trace()  # Breakpoint
+mo2fmu("model.mo", "./output", verbose=True)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_logging"><a class="anchor" href="#_logging"></a>4.2. Logging</h3>
+<div class="paragraph">
+<p>Enable detailed Python logging:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+from feelpp.mo2fmu import mo2fmu
+mo2fmu("model.mo", "./output", verbose=True)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dymola_log_files"><a class="anchor" href="#_dymola_log_files"></a>4.3. Dymola Log Files</h3>
+<div class="paragraph">
+<p>Check Dymola-generated log files:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>dslog.txt</code> - Dymola simulation log</p>
+</li>
+<li>
+<p><code>buildlog.txt</code> - Compilation log</p>
+</li>
+<li>
+<p><code>dsin.txt</code> - Initial values</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cat dslog.txt
+cat buildlog.txt</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_performance_issues"><a class="anchor" href="#_performance_issues"></a>5. Performance Issues</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_slow_fmu_generation"><a class="anchor" href="#_slow_fmu_generation"></a>5.1. Slow FMU Generation</h3>
+<div class="paragraph">
+<p><strong>Causes:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Large models</p>
+</li>
+<li>
+<p>Complex dependencies</p>
+</li>
+<li>
+<p>Disk I/O bottlenecks</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Solutions:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Use SSD for temporary files</strong></p>
+</li>
+<li>
+<p><strong>Close unnecessary applications</strong></p>
+</li>
+<li>
+<p><strong>Increase system resources allocated to Dymola</strong></p>
+</li>
+<li>
+<p><strong>Optimize Modelica model before export</strong></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_memory_issues"><a class="anchor" href="#_memory_issues"></a>5.2. Memory Issues</h3>
+<div class="paragraph">
+<p><strong>Symptom:</strong></p>
+</div>
+<div class="paragraph">
+<p>Process killed or out-of-memory errors.</p>
+</div>
+<div class="paragraph">
+<p><strong>Solutions:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Increase available memory</strong></p>
+</li>
+<li>
+<p><strong>Close other applications</strong></p>
+</li>
+<li>
+<p><strong>Simplify the model</strong></p>
+</li>
+<li>
+<p><strong>Use a machine with more RAM</strong></p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next_steps"><a class="anchor" href="#_next_steps"></a>6. Next Steps</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Review <a href="configuration.html" class="xref page">configuration guide</a></p>
+</li>
+<li>
+<p>Check <a href="examples.html" class="xref page">examples</a> for working code</p>
+</li>
+<li>
+<p>Read <a href="usage-cli.html" class="xref page">CLI documentation</a></p>
+</li>
+<li>
+<p>Explore <a href="usage-python.html" class="xref page">Python API</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer" style="border-top: 2px solid #e9e9e9; background-color: #fafafa; padding-bottom: 2em; padding-top: 2em;">
+    <div class="container" style="display: flex; flex-direction: column; align-items: center; gap: 0.5em;">
+        <div>
+            <a href="https://www.cemosis.fr">
+                <img src="../_/img/cemosis-logo.svg" alt="Cemosis logo" height="50">
+            </a>
+        </div>
+        <span style="font-size: 0.8rem; color: #9e9e9e">© 2025 <a href="https://www.cemosis.fr" style="text-decoration: underline;">Cemosis</a>, Université de Strasbourg</span>
+    </div>
+</footer>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+
+
+<!-- Font Awesome JS removed to use webfont icons only -->
+<script async src="../_/js/vendor/highlight.js"></script>
+
+<script src="../_/js/vendor/lunr.js"></script>
+
+<script type="text/javascript">
+function toggleFullScreen() {
+   var doc = window.document;
+   var docEl = doc.documentElement;
+
+   var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+   var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+   if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+       requestFullScreen.call(docEl);
+   }
+   else {
+       cancelFullScreen.call(doc);
+   }
+}
+</script>
+  </body>
+</html>

@@ -145,11 +145,41 @@ MathJax.Hub.Config({
     <a class="nav-link" href="index.html">Introduction</a>
   </li>
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="overview.html">Overview</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="quickstart.html">Quickstart</a>
+  </li>
+  <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Setting up the development Environment</span>
+    <span class="nav-text">Usage</span>
 <ul class="nav-list">
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="env/antora.html">Antora Environment</a>
+    <a class="nav-link" href="usage-cli.html">Command-Line Interface</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="usage-python.html">Python API</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="configuration.html">Configuration</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="examples.html">Examples</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="troubleshooting.html">Troubleshooting</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="faq.html">FAQ</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Development Environment</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="env/antora.html">Antora Documentation</a>
   </li>
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="env/githubactions.html">GitHub Actions</a>
@@ -185,20 +215,83 @@ MathJax.Hub.Config({
     <div class="content">
       <article class="doc">
 <h1 class="page">Modelica to FMU converter</h1>
+<div id="preamble">
+<div class="sectionbody">
 <div class="paragraph lead">
-<p>Modelica to FMU converter is a GitHub repository providing a converter between modelica language and FMU.</p>
+<p>Modelica to FMU converter is a powerful tool that converts Modelica models to Functional Mock-up Units (FMUs) using Dymola. It provides both a command-line interface and a Python API for seamless integration into your workflows.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_is_mo2fmu"><a class="anchor" href="#_what_is_mo2fmu"></a>1. What is mo2fmu?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>mo2fmu simplifies the process of converting Modelica simulation models into standardized FMU format, which can be used across different simulation platforms and tools that support the Functional Mock-up Interface (FMI) standard.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_key_features"><a class="anchor" href="#_key_features"></a>2. Key Features</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Command-Line Interface</strong>: Quick and easy conversion via terminal commands</p>
+</li>
+<li>
+<p><strong>Python API</strong>: Programmatic access for automation and integration</p>
+</li>
+<li>
+<p><strong>Flexible Configuration</strong>: Support for custom Dymola settings and FMI options</p>
+</li>
+<li>
+<p><strong>Multiple FMI Types</strong>: Generate Co-Simulation (CS), Model Exchange (ME), or both</p>
+</li>
+<li>
+<p><strong>Package Management</strong>: Load additional Modelica packages during conversion</p>
+</li>
+<li>
+<p><strong>Optimization</strong>: Built-in compiler optimizations for better performance</p>
+</li>
+<li>
+<p><strong>64-bit Support</strong>: Modern 64-bit FMU generation with code export</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_getting_started"><a class="anchor" href="#_getting_started"></a>3. Getting Started</h2>
+<div class="sectionbody">
 <div class="dlist">
 <dl>
-<dt class="hdlist1">Coding</dt>
+<dt class="hdlist1">Installation</dt>
 <dd>
-<p><a href="overview.html" class="xref page">Feel++ C++ and Python</a> codes are available to help you get starting with using and coding with Feel++.</p>
+<p>Get started quickly by <a href="quickstart.html" class="xref page">installing mo2fmu</a> from PyPI or from source.</p>
 </dd>
-<dt class="hdlist1">Documenting</dt>
+<dt class="hdlist1">Usage</dt>
 <dd>
-<p>The <a href="overview.html" class="xref page">documentation</a> is written using the <a href="https://docs.asciidoc.org">Asciidoc plain text format</a> and <a href="https://docs.antora.org">Antora</a> to produce the documentation website. It is here to help you start with Modelica to FMU converter documentation.</p>
+<p>Learn how to use mo2fmu through <a href="usage-cli.html" class="xref page">command-line</a> or <a href="usage-python.html" class="xref page">Python API</a>.</p>
+</dd>
+<dt class="hdlist1">Configuration</dt>
+<dd>
+<p>Configure <a href="configuration.html" class="xref page">Dymola paths and settings</a> for your environment.</p>
+</dd>
+<dt class="hdlist1">Examples</dt>
+<dd>
+<p>Explore <a href="examples.html" class="xref page">real-world examples</a> to see mo2fmu in action.</p>
 </dd>
 </dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_documentation"><a class="anchor" href="#_documentation"></a>4. Documentation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The documentation is written using the <a href="https://docs.asciidoc.org">Asciidoc plain text format</a> and <a href="https://docs.antora.org">Antora</a> to produce this website.</p>
+</div>
+</div>
 </div>
 </article>
     </div>

@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Quickstart Guide :: Modelica to FMU converter</title>
-    <link rel="canonical" href="https://feelpp.github.io/mo2fmu/mo2fmu/quickstart.html">
+    <title>Command-Line Usage :: Modelica to FMU converter</title>
+    <link rel="canonical" href="https://feelpp.github.io/mo2fmu/mo2fmu/usage-cli.html">
     <meta name="generator" content="Antora 3.1.10">
 <link rel="stylesheet" href="../_/css/site.css">
 
@@ -146,14 +146,14 @@ MathJax.Hub.Config({
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="overview.html">Overview</a>
   </li>
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="quickstart.html">Quickstart</a>
   </li>
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
     <span class="nav-text">Usage</span>
 <ul class="nav-list">
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-current-page" data-depth="2">
     <a class="nav-link" href="usage-cli.html">Command-Line Interface</a>
   </li>
   <li class="nav-item" data-depth="2">
@@ -211,12 +211,13 @@ MathJax.Hub.Config({
   <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Modelica to FMU converter</a></li>
-    <li><a href="quickstart.html">Quickstart</a></li>
+    <li>Usage</li>
+    <li><a href="usage-cli.html">Command-Line Interface</a></li>
   </ul>
 </nav>
 
   
-    <div class="edit-this-page"><a href="https://github.com/feelpp/mo2fmu/edit/main/docs/modules/ROOT/pages/quickstart.adoc">Edit this Page</a></div>
+    <div class="edit-this-page"><a href="https://github.com/feelpp/mo2fmu/edit/main/docs/modules/ROOT/pages/usage-cli.adoc">Edit this Page</a></div>
   
   <div class="page-downloads">
   <span class="label">Download as</span>
@@ -236,293 +237,402 @@ MathJax.Hub.Config({
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Quickstart Guide</h1>
+<h1 class="page">Command-Line Usage</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Get up and running with Modelica to FMU converter in minutes. This guide covers installation and your first FMU conversion.</p>
+<p>The <code>mo2fmu</code> command-line tool provides a simple interface for converting Modelica models to FMUs.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_prerequisites"><a class="anchor" href="#_prerequisites"></a>1. Prerequisites</h2>
+<h2 id="_basic_syntax"><a class="anchor" href="#_basic_syntax"></a>1. Basic Syntax</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu [OPTIONS] MO OUTDIR</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>Before installing mo2fmu, ensure you have:</p>
+<p><strong>Arguments:</strong></p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Python 3.8.1 or higher</p>
+<p><code>MO</code>: Path to the Modelica model file (<code>.mo</code>)</p>
 </li>
 <li>
-<p>Dymola installation (version 2024 or later recommended)</p>
-</li>
-<li>
-<p>pip or uv package manager</p>
+<p><code>OUTDIR</code>: Output directory for the generated FMU</p>
 </li>
 </ul>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_installation"><a class="anchor" href="#_installation"></a>2. Installation</h2>
+<h2 id="_quick_examples"><a class="anchor" href="#_quick_examples"></a>2. Quick Examples</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_from_pypi_recommended"><a class="anchor" href="#_from_pypi_recommended"></a>2.1. From PyPI (Recommended)</h3>
+<h3 id="_simple_conversion"><a class="anchor" href="#_simple_conversion"></a>2.1. Simple Conversion</h3>
 <div class="paragraph">
-<p>Install the latest stable release from PyPI using pip:</p>
+<p>Convert a Modelica file to FMU with default settings:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">pip install feelpp-mo2fmu</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Or using uv (faster):</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">uv pip install feelpp-mo2fmu</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu model.mo ./output</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_from_source"><a class="anchor" href="#_from_source"></a>2.2. From Source</h3>
+<h3 id="_verbose_mode"><a class="anchor" href="#_verbose_mode"></a>2.2. Verbose Mode</h3>
 <div class="paragraph">
-<p>For development or to use the latest unreleased features:</p>
+<p>Enable detailed logging during conversion:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">git clone https://github.com/feelpp/mo2fmu.git
-cd mo2fmu
-uv venv .venv-mo2fmu
-source .venv-mo2fmu/bin/activate  # On Windows: .venv-mo2fmu\Scripts\activate
-uv pip install -e ".[all]"</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v model.mo ./output</code></pre>
 </div>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_force_overwrite"><a class="anchor" href="#_force_overwrite"></a>2.3. Force Overwrite</h3>
 <div class="paragraph">
-<p>The <code>[all]</code> extra installs additional development dependencies including testing and linting tools.</p>
+<p>Overwrite existing FMU files:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -f model.mo ./output</code></pre>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configuration"><a class="anchor" href="#_configuration"></a>3. Configuration</h2>
+<h2 id="_command_line_options"><a class="anchor" href="#_command_line_options"></a>3. Command-Line Options</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_dymola_environment_variables"><a class="anchor" href="#_dymola_environment_variables"></a>3.1. Dymola Environment Variables</h3>
+<h3 id="_model_and_output_options"><a class="anchor" href="#_model_and_output_options"></a>3.1. Model and Output Options</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>--fmumodelname TEXT</code></dt>
+<dd>
+<p>Change the model name of the FMU. By default, uses the <code>.mo</code> file stem.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --fmumodelname CustomName model.mo ./output</code></pre>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_package_loading"><a class="anchor" href="#_package_loading"></a>3.2. Package Loading</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>--load TEXT</code></dt>
+<dd>
+<p>Load one or more Modelica packages. Can be specified multiple times.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --load Modelica --load MyPackage model.mo ./output</code></pre>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_fmi_configuration"><a class="anchor" href="#_fmi_configuration"></a>3.3. FMI Configuration</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>--type [all|cs|me|csSolver]</code></dt>
+<dd>
+<p>Specify the FMI type (default: <code>all</code>):</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>cs</code>: Co-Simulation FMU</p>
+</li>
+<li>
+<p><code>me</code>: Model Exchange FMU</p>
+</li>
+<li>
+<p><code>all</code>: Both CS and ME</p>
+</li>
+<li>
+<p><code>csSolver</code>: Co-Simulation with solver</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --type cs model.mo ./output</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>--version TEXT</code></dt>
+<dd>
+<p>Specify the FMI version (default: <code>2</code>):</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --version 2 model.mo ./output</code></pre>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dymola_configuration"><a class="anchor" href="#_dymola_configuration"></a>3.4. Dymola Configuration</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>--dymola PATH</code></dt>
+<dd>
+<p>Path to Dymola root directory (default: <code>/opt/dymola-2025xRefresh1-x86_64/</code>):</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --dymola /path/to/dymola model.mo ./output</code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code>--dymolapath PATH</code></dt>
+<dd>
+<p>Path to Dymola executable (default: <code>/usr/local/bin/dymola</code>):</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --dymolapath /usr/local/bin/dymola model.mo ./output</code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code>--dymolawhl PATH</code></dt>
+<dd>
+<p>Path to Dymola wheel file, relative to Dymola root:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --dymolawhl Modelica/Library/python_interface/dymola.whl model.mo ./output</code></pre>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_translation_flags"><a class="anchor" href="#_translation_flags"></a>3.5. Translation Flags</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>--flags TEXT</code></dt>
+<dd>
+<p>Pass one or more Dymola flags for FMU translation. Can be specified multiple times.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --flags "-d=initialization" --flags "Advanced.LogEvents=true" model.mo ./output</code></pre>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_general_options"><a class="anchor" href="#_general_options"></a>3.6. General Options</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>-v, --verbose</code></dt>
+<dd>
+<p>Enable verbose logging to see detailed information during conversion.</p>
+</dd>
+<dt class="hdlist1"><code>-f, --force</code></dt>
+<dd>
+<p>Force FMU generation even if the output file already exists.</p>
+</dd>
+<dt class="hdlist1"><code>--help</code></dt>
+<dd>
+<p>Show help message and exit.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_complete_examples"><a class="anchor" href="#_complete_examples"></a>4. Complete Examples</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_example_1_basic_conversion"><a class="anchor" href="#_example_1_basic_conversion"></a>4.1. Example 1: Basic Conversion</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu SimpleModel.mo ./fmus</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>Configure Dymola paths using environment variables:</p>
+<p>This creates <code>SimpleModel.fmu</code> in the <code>./fmus</code> directory.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_2_load_additional_package"><a class="anchor" href="#_example_2_load_additional_package"></a>4.2. Example 2: Load Additional Package</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --load Modelica --load MyLibrary ComplexModel.mo ./output</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Loads the standard Modelica library and a custom library before conversion.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_3_co_simulation_fmu_with_custom_name"><a class="anchor" href="#_example_3_co_simulation_fmu_with_custom_name"></a>4.3. Example 3: Co-Simulation FMU with Custom Name</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu --type cs --fmumodelname MyFMU --verbose model.mo ./fmus</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Creates a Co-Simulation FMU named <code>MyFMU.fmu</code> with verbose output.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_4_multiple_flags_and_force_overwrite"><a class="anchor" href="#_example_4_multiple_flags_and_force_overwrite"></a>4.4. Example 4: Multiple Flags and Force Overwrite</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -v -f \
+  --flags "-d=initialization" \
+  --flags "Advanced.GenerateVariableDependencies=true" \
+  --type all \
+  model.mo ./output</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_5_custom_dymola_installation"><a class="anchor" href="#_example_5_custom_dymola_installation"></a>4.5. Example 5: Custom Dymola Installation</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu \
+  --dymola /opt/dymola-2024x \
+  --dymolapath /opt/dymola-2024x/bin/dymola \
+  --dymolawhl Modelica/Library/python_interface/dymola.whl \
+  model.mo ./output</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_environment_variables"><a class="anchor" href="#_environment_variables"></a>5. Environment Variables</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Instead of passing Dymola paths via command-line options, you can set environment variables:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
 export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
-export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl</code></pre>
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+
+mo2fmu model.mo ./output</code></pre>
 </div>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Add these to your <code>~/.bashrc</code> or <code>~/.zshrc</code> for persistent configuration.</p>
-</div>
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
-<p>For more configuration options, see <a href="configuration.html" class="xref page">Configuration Guide</a>.</p>
-</div>
+<p>See <a href="configuration.html" class="xref page">Configuration</a> for more details.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_quick_start_first_fmu_conversion"><a class="anchor" href="#_quick_start_first_fmu_conversion"></a>4. Quick Start: First FMU Conversion</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="_1_create_a_simple_modelica_model"><a class="anchor" href="#_1_create_a_simple_modelica_model"></a>4.1. 1. Create a Simple Modelica Model</h3>
-<div class="paragraph">
-<p>Create a file named <code>SimpleModel.mo</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-modelica hljs" data-lang="modelica">model SimpleModel
-  Real x(start=1);
-equation
-  der(x) = -x;
-end SimpleModel;</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_2_convert_to_fmu"><a class="anchor" href="#_2_convert_to_fmu"></a>4.2. 2. Convert to FMU</h3>
-<div class="paragraph">
-<p>Using the command line:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu SimpleModel.mo ./output</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This creates <code>SimpleModel.fmu</code> in the <code>./output</code> directory.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_3_verify_the_output"><a class="anchor" href="#_3_verify_the_output"></a>4.3. 3. Verify the Output</h3>
-<div class="paragraph">
-<p>Check that the FMU was created:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">ls -lh output/SimpleModel.fmu</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You should see your generated FMU file!</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_next_steps"><a class="anchor" href="#_next_steps"></a>5. Next Steps</h2>
+<h2 id="_exit_codes"><a class="anchor" href="#_exit_codes"></a>6. Exit Codes</h2>
 <div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
-<p>Learn about <a href="usage-cli.html" class="xref page">command-line options</a></p>
+<p><code>0</code>: Successful conversion</p>
 </li>
 <li>
-<p>Explore the <a href="usage-python.html" class="xref page">Python API</a></p>
-</li>
-<li>
-<p>Check out <a href="examples.html" class="xref page">more examples</a></p>
-</li>
-<li>
-<p>Read about <a href="configuration.html" class="xref page">advanced configuration</a></p>
+<p>Non-zero: Conversion failed (check error messages)</p>
 </li>
 </ul>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_using_devcontainers_in_visual_studio_code"><a class="anchor" href="#_using_devcontainers_in_visual_studio_code"></a>6. Using DevContainers in Visual Studio Code</h2>
+<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a>7. Troubleshooting</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>For a consistent development environment, you can use DevContainers:</p>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Please ensure that you have <a href="https://code.visualstudio.com/">Visual Studio Code</a> and <a href="https://docs.docker.com/engine/install/">Docker</a> installed before proceeding.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
 <div class="sect2">
-<h3 id="_getting_started"><a class="anchor" href="#_getting_started"></a>6.1. Getting Started</h3>
+<h3 id="_fmu_already_exists"><a class="anchor" href="#_fmu_already_exists"></a>7.1. FMU Already Exists</h3>
 <div class="paragraph">
-<p>To start using DevContainers in Visual Studio Code, follow these steps:</p>
+<p>If you see:</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Open your project in Visual Studio Code.</p>
-</li>
-<li>
-<p>A <code>devcontainer.json</code> file in the root of your project in <code>.devcontainer</code> directory</p>
-</li>
-<li>
-<p>A configuration similar to the following one is available:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
-	"name": "Feel++ Dev Jammy",
-	"image": "ghcr.io/feelpp/feelpp-dev:jammy",
-	"extensions": [
-		"ms-vscode.cpptools",
-		"ms-vscode.cmake-tools",
-		"josetr.cmake-language-support-vscode",
-		"asciidoctor.asciidoctor-vscode",
-		"ms-python.python",
-		"ms-toolsai.jupyter"
-	]
-}</code></pre>
+<pre>model.fmu exists in ./output; use `--force` to overwrite.</pre>
 </div>
 </div>
-</li>
-<li>
-<p>Customize the configuration based on your project requirements.
-In the example above, the configuration sets the name of the Dev Container as "Feel++ Dev Jammy" and specifies the Docker image to use as "ghcr.io/feelpp/feelpp-dev:jammy".
-Additionally, it includes a list of extensions to install inside the Dev Container.</p>
-</li>
-</ol>
+<div class="paragraph">
+<p>Use the <code>-f</code> or <code>--force</code> flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mo2fmu -f model.mo ./output</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_opening_in_devcontainer"><a class="anchor" href="#_opening_in_devcontainer"></a>6.2. Opening in DevContainer</h3>
+<h3 id="_dymola_not_found"><a class="anchor" href="#_dymola_not_found"></a>7.2. Dymola Not Found</h3>
 <div class="paragraph">
-<p>To open your project using the DevContainer, follow these steps:</p>
+<p>If you see errors about Dymola not being available:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Open the Command Palette in Visual Studio Code by pressing <code>Ctrl+Shift+P</code> (or <code>Cmd+Shift+P</code> on macOS).</p>
+<p>Check that Dymola is installed</p>
 </li>
 <li>
-<p>Search for and select "Remote-Containers: Reopen in Container".</p>
+<p>Verify the Dymola paths are correct</p>
 </li>
 <li>
-<p>Visual Studio Code will build the Docker image specified in the <code>devcontainer.json</code> file and open a new window inside the Dev Container.</p>
+<p>Ensure the Dymola wheel file exists</p>
 </li>
 <li>
-<p>Once the Dev Container is loaded, you can start working on your project within the containerized environment.</p>
+<p>Check environment variables or command-line options</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>See <a href="configuration.html" class="xref page">Configuration</a> for help setting up Dymola paths.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_package_loading_fails"><a class="anchor" href="#_package_loading_fails"></a>7.3. Package Loading Fails</h3>
+<div class="paragraph">
+<p>If a package fails to load:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Ensure the package path is correct</p>
+</li>
+<li>
+<p>Check that dependencies are available</p>
+</li>
+<li>
+<p>Use <code>--verbose</code> to see detailed error messages</p>
 </li>
 </ol>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_benefits_of_using_devcontainers"><a class="anchor" href="#_benefits_of_using_devcontainers"></a>6.3. Benefits of Using DevContainers</h3>
-<div class="paragraph">
-<p>Using DevContainers in Visual Studio Code offers several benefits:</p>
 </div>
+</div>
+<div class="sect1">
+<h2 id="_next_steps"><a class="anchor" href="#_next_steps"></a>8. Next Steps</h2>
+<div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Consistent Development Environment</strong>: DevContainers provide a consistent and reproducible development environment across different machines, ensuring that everyone works in the same environment.</p>
+<p>Learn about the <a href="usage-python.html" class="xref page">Python API</a></p>
 </li>
 <li>
-<p><strong>Isolation and Dependency Management</strong>: DevContainers isolate your project dependencies from your local machine, reducing conflicts and simplifying dependency management.</p>
+<p>Explore <a href="examples.html" class="xref page">more examples</a></p>
 </li>
 <li>
-<p><strong>Easy Extension Installation</strong>: DevContainers automatically install the specified extensions, making it easy to set up the required tools and configurations for your project.</p>
+<p>Configure <a href="configuration.html" class="xref page">Dymola settings</a></p>
 </li>
 </ul>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Make sure your Docker daemon is running and accessible from the terminal to use DevContainers in Visual Studio Code.
-</td>
-</tr>
-</table>
-</div>
 </div>
 </div>
 </div>
