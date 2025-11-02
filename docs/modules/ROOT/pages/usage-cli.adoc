@@ -1,0 +1,250 @@
+= Command-Line Usage
+:navtitle: CLI Usage
+
+The `mo2fmu` command-line tool provides a simple interface for converting Modelica models to FMUs.
+
+== Basic Syntax
+
+[source,bash]
+----
+mo2fmu [OPTIONS] MO OUTDIR
+----
+
+*Arguments:*
+
+* `MO`: Path to the Modelica model file (`.mo`)
+* `OUTDIR`: Output directory for the generated FMU
+
+== Quick Examples
+
+=== Simple Conversion
+
+Convert a Modelica file to FMU with default settings:
+
+[source,bash]
+----
+mo2fmu model.mo ./output
+----
+
+=== Verbose Mode
+
+Enable detailed logging during conversion:
+
+[source,bash]
+----
+mo2fmu -v model.mo ./output
+----
+
+=== Force Overwrite
+
+Overwrite existing FMU files:
+
+[source,bash]
+----
+mo2fmu -f model.mo ./output
+----
+
+== Command-Line Options
+
+=== Model and Output Options
+
+`--fmumodelname TEXT`::
+Change the model name of the FMU. By default, uses the `.mo` file stem.
++
+[source,bash]
+----
+mo2fmu --fmumodelname CustomName model.mo ./output
+----
+
+=== Package Loading
+
+`--load TEXT`::
+Load one or more Modelica packages. Can be specified multiple times.
++
+[source,bash]
+----
+mo2fmu --load Modelica --load MyPackage model.mo ./output
+----
+
+=== FMI Configuration
+
+`--type [all|cs|me|csSolver]`::
+Specify the FMI type (default: `all`):
++
+* `cs`: Co-Simulation FMU
+* `me`: Model Exchange FMU
+* `all`: Both CS and ME
+* `csSolver`: Co-Simulation with solver
++
+[source,bash]
+----
+mo2fmu --type cs model.mo ./output
+----
+
+`--version TEXT`::
+Specify the FMI version (default: `2`):
++
+[source,bash]
+----
+mo2fmu --version 2 model.mo ./output
+----
+
+=== Dymola Configuration
+
+`--dymola PATH`::
+Path to Dymola root directory (default: `/opt/dymola-2025xRefresh1-x86_64/`):
++
+[source,bash]
+----
+mo2fmu --dymola /path/to/dymola model.mo ./output
+----
+
+`--dymolapath PATH`::
+Path to Dymola executable (default: `/usr/local/bin/dymola`):
++
+[source,bash]
+----
+mo2fmu --dymolapath /usr/local/bin/dymola model.mo ./output
+----
+
+`--dymolawhl PATH`::
+Path to Dymola wheel file, relative to Dymola root:
++
+[source,bash]
+----
+mo2fmu --dymolawhl Modelica/Library/python_interface/dymola.whl model.mo ./output
+----
+
+=== Translation Flags
+
+`--flags TEXT`::
+Pass one or more Dymola flags for FMU translation. Can be specified multiple times.
++
+[source,bash]
+----
+mo2fmu --flags "-d=initialization" --flags "Advanced.LogEvents=true" model.mo ./output
+----
+
+=== General Options
+
+`-v, --verbose`::
+Enable verbose logging to see detailed information during conversion.
+
+`-f, --force`::
+Force FMU generation even if the output file already exists.
+
+`--help`::
+Show help message and exit.
+
+== Complete Examples
+
+=== Example 1: Basic Conversion
+
+[source,bash]
+----
+mo2fmu SimpleModel.mo ./fmus
+----
+
+This creates `SimpleModel.fmu` in the `./fmus` directory.
+
+=== Example 2: Load Additional Package
+
+[source,bash]
+----
+mo2fmu --load Modelica --load MyLibrary ComplexModel.mo ./output
+----
+
+Loads the standard Modelica library and a custom library before conversion.
+
+=== Example 3: Co-Simulation FMU with Custom Name
+
+[source,bash]
+----
+mo2fmu --type cs --fmumodelname MyFMU --verbose model.mo ./fmus
+----
+
+Creates a Co-Simulation FMU named `MyFMU.fmu` with verbose output.
+
+=== Example 4: Multiple Flags and Force Overwrite
+
+[source,bash]
+----
+mo2fmu -v -f \
+  --flags "-d=initialization" \
+  --flags "Advanced.GenerateVariableDependencies=true" \
+  --type all \
+  model.mo ./output
+----
+
+=== Example 5: Custom Dymola Installation
+
+[source,bash]
+----
+mo2fmu \
+  --dymola /opt/dymola-2024x \
+  --dymolapath /opt/dymola-2024x/bin/dymola \
+  --dymolawhl Modelica/Library/python_interface/dymola.whl \
+  model.mo ./output
+----
+
+== Environment Variables
+
+Instead of passing Dymola paths via command-line options, you can set environment variables:
+
+[source,bash]
+----
+export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+
+mo2fmu model.mo ./output
+----
+
+See xref:configuration.adoc[Configuration] for more details.
+
+== Exit Codes
+
+* `0`: Successful conversion
+* Non-zero: Conversion failed (check error messages)
+
+== Troubleshooting
+
+=== FMU Already Exists
+
+If you see:
+
+----
+model.fmu exists in ./output; use `--force` to overwrite.
+----
+
+Use the `-f` or `--force` flag:
+
+[source,bash]
+----
+mo2fmu -f model.mo ./output
+----
+
+=== Dymola Not Found
+
+If you see errors about Dymola not being available:
+
+1. Check that Dymola is installed
+2. Verify the Dymola paths are correct
+3. Ensure the Dymola wheel file exists
+4. Check environment variables or command-line options
+
+See xref:configuration.adoc[Configuration] for help setting up Dymola paths.
+
+=== Package Loading Fails
+
+If a package fails to load:
+
+1. Ensure the package path is correct
+2. Check that dependencies are available
+3. Use `--verbose` to see detailed error messages
+
+== Next Steps
+
+* Learn about the xref:usage-python.adoc[Python API]
+* Explore xref:examples.adoc[more examples]
+* Configure xref:configuration.adoc[Dymola settings]

@@ -1,0 +1,394 @@
+= Configuration Guide
+:navtitle: Configuration
+
+This guide covers how to configure mo2fmu for your environment, including Dymola paths, environment variables, and advanced settings.
+
+== Dymola Configuration
+
+mo2fmu requires access to a Dymola installation. You can configure Dymola paths in three ways:
+
+1. Environment variables (recommended)
+2. Command-line arguments
+3. Python API parameters
+
+=== Environment Variables
+
+Setting environment variables is the recommended approach for consistent configuration across your system.
+
+==== Linux/macOS
+
+Add to your `~/.bashrc` or `~/.zshrc`:
+
+[source,bash]
+----
+# Dymola installation root
+export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+
+# Dymola executable path
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+
+# Dymola Python wheel (relative to DYMOLA_ROOT)
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+----
+
+Then reload your shell:
+
+[source,bash]
+----
+source ~/.bashrc
+----
+
+==== Windows
+
+Set environment variables via System Properties or PowerShell:
+
+[source,powershell]
+----
+$env:DYMOLA_ROOT = "C:\Program Files\Dymola 2025x"
+$env:DYMOLA_EXECUTABLE = "C:\Program Files\Dymola 2025x\bin\Dymola.exe"
+$env:DYMOLA_WHL = "Modelica\Library\python_interface\dymola-2025.1-py3-none-any.whl"
+----
+
+Or set them permanently via System Properties:
+
+1. Open System Properties → Advanced → Environment Variables
+2. Add new user or system variables
+
+=== Command-Line Configuration
+
+Override environment variables using command-line options:
+
+[source,bash]
+----
+mo2fmu \
+  --dymola /opt/dymola-2024x \
+  --dymolapath /opt/dymola-2024x/bin/dymola \
+  --dymolawhl Modelica/Library/python_interface/dymola.whl \
+  model.mo ./output
+----
+
+=== Python API Configuration
+
+Pass configuration directly to the function:
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+
+mo2fmu(
+    mo="model.mo",
+    outdir="./output",
+    dymola_root="/opt/dymola-2024x",
+    dymolapath="/opt/dymola-2024x/bin/dymola",
+    dymolawhl="Modelica/Library/python_interface/dymola.whl"
+)
+----
+
+== Finding Dymola Paths
+
+=== Locating DYMOLA_ROOT
+
+The Dymola root directory typically contains:
+
+----
+dymola-root/
+├── bin/
+│   └── dymola (executable)
+├── Modelica/
+│   └── Library/
+│       └── python_interface/
+│           └── dymola*.whl
+└── ...
+----
+
+Common locations:
+
+* Linux: `/opt/dymola-*`, `/usr/local/dymola-*`
+* Windows: `C:\Program Files\Dymola *`
+* macOS: `/Applications/Dymola *`
+
+=== Locating the Dymola Executable
+
+The executable is usually in `bin/` subdirectory:
+
+* Linux: `$DYMOLA_ROOT/bin/dymola`
+* Windows: `%DYMOLA_ROOT%\bin\Dymola.exe`
+* macOS: `$DYMOLA_ROOT/bin/dymola`
+
+Some installations create symlinks in standard locations like `/usr/local/bin/dymola`.
+
+=== Locating the Python Wheel
+
+The Python wheel is typically at:
+
+----
+Modelica/Library/python_interface/dymola-<version>-py3-none-any.whl
+----
+
+[TIP]
+====
+Use this command to find all Dymola wheels:
+
+[source,bash]
+----
+find $DYMOLA_ROOT -name "dymola*.whl"
+----
+====
+
+== Verification
+
+=== Verify Configuration
+
+Check that your configuration is correct:
+
+[source,bash]
+----
+# Check environment variables
+echo $DYMOLA_ROOT
+echo $DYMOLA_EXECUTABLE
+echo $DYMOLA_WHL
+
+# Verify paths exist
+ls -l $DYMOLA_ROOT
+ls -l $DYMOLA_EXECUTABLE
+ls -l $DYMOLA_ROOT/$DYMOLA_WHL
+----
+
+=== Test mo2fmu
+
+Create a simple test model:
+
+[source,modelica]
+----
+model Test
+  Real x(start=1);
+equation
+  der(x) = -x;
+end Test;
+----
+
+Run mo2fmu with verbose mode:
+
+[source,bash]
+----
+mo2fmu -v Test.mo ./test_output
+----
+
+Look for these messages:
+
+----
+add /opt/dymola-*/Modelica/Library/python_interface/dymola*.whl to sys path
+dymola is available in ...
+----
+
+== FMI Configuration
+
+=== FMI Types
+
+Choose the appropriate FMI type for your use case:
+
+`cs` (Co-Simulation)::
+FMU includes a solver and acts as a black box. Best for:
++
+* Coupling with other simulation tools
+* When you don't need access to internal states
+* Simpler integration
+
+`me` (Model Exchange)::
+FMU provides equations; external solver required. Best for:
++
+* When you need fine control over numerical integration
+* Academic or research purposes
+* Custom solver requirements
+
+`all`::
+Generates both CS and ME in one FMU. Best for:
++
+* Maximum flexibility
+* When you're unsure which type you'll need
+* Distributing models to users with different needs
+
+`csSolver`::
+Co-Simulation with specific solver configuration.
+
+=== FMI Versions
+
+Currently, mo2fmu supports FMI 2.0:
+
+[source,bash]
+----
+mo2fmu --version 2 model.mo ./output
+----
+
+== Advanced Dymola Settings
+
+=== Automatically Configured
+
+mo2fmu automatically configures these Dymola settings for optimal FMU generation:
+
+[source,python]
+----
+# 64-bit only (no 32-bit)
+Advanced.CompileWith64=2
+
+# Enable code export (license-free execution)
+Advanced.EnableCodeExport=true
+
+# Full compiler optimizations
+Advanced.Define.GlobalOptimizations=2
+----
+
+=== Custom Flags
+
+Pass additional Dymola flags for fine-tuned control:
+
+[source,bash]
+----
+mo2fmu --flags "Advanced.LogEvents=true" \
+       --flags "Advanced.GenerateVariableDependencies=true" \
+       model.mo ./output
+----
+
+Common flags:
+
+`-d=initialization`::
+Enable initialization debug output
+
+`Advanced.LogEvents=true`::
+Log event handling
+
+`Advanced.GenerateVariableDependencies=true`::
+Generate variable dependency information
+
+`Advanced.AllowStringParameters=true`::
+Allow string parameters in FMU
+
+== Troubleshooting
+
+=== Dymola Not Found
+
+*Problem:* `dymola module is not available`
+
+*Solutions:*
+
+1. Verify DYMOLA_ROOT points to the correct directory
+2. Check that the wheel file exists at `$DYMOLA_ROOT/$DYMOLA_WHL`
+3. Ensure you have read permissions
+
+[source,bash]
+----
+ls -la $DYMOLA_ROOT/$DYMOLA_WHL
+----
+
+=== Permission Errors
+
+*Problem:* Permission denied when accessing Dymola files
+
+*Solution:* Add your user to the appropriate group or adjust file permissions:
+
+[source,bash]
+----
+sudo chmod -R o+r /opt/dymola-*
+----
+
+=== License Issues
+
+*Problem:* FMU generation fails due to license issues
+
+*Solutions:*
+
+1. Verify Dymola license is valid:
++
+[source,bash]
+----
+$DYMOLA_EXECUTABLE -check
+----
+
+2. Set license environment variable if needed:
++
+[source,bash]
+----
+export DYMOLA_RUNTIME_LICENSE="path/to/license.lic"
+----
+
+3. Check license server connectivity
+
+=== Display Issues (Linux)
+
+*Problem:* X11/display errors
+
+*Solution:* mo2fmu uses Xvfb (virtual framebuffer) automatically. Ensure it's installed:
+
+[source,bash]
+----
+# Debian/Ubuntu
+sudo apt-get install xvfb
+
+# RHEL/CentOS
+sudo yum install xorg-x11-server-Xvfb
+----
+
+== Configuration for Different Dymola Versions
+
+=== Dymola 2024x
+
+[source,bash]
+----
+export DYMOLA_ROOT=/opt/dymola-2024x-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2024.1-py3-none-any.whl
+----
+
+=== Dymola 2025x
+
+[source,bash]
+----
+export DYMOLA_ROOT=/opt/dymola-2025x-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+----
+
+=== Dymola 2025x Refresh 1
+
+[source,bash]
+----
+export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+----
+
+== CI/CD Configuration
+
+=== GitHub Actions
+
+[source,yaml]
+----
+- name: Configure mo2fmu
+  env:
+    DYMOLA_ROOT: /opt/dymola-2025xRefresh1-x86_64/
+    DYMOLA_EXECUTABLE: /usr/local/bin/dymola
+    DYMOLA_WHL: Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+    DYMOLA_RUNTIME_LICENSE: ${{ secrets.DYMOLA_RUNTIME_LICENSE }}
+  run: |
+    mo2fmu model.mo ./output
+----
+
+=== GitLab CI
+
+[source,yaml]
+----
+variables:
+  DYMOLA_ROOT: /opt/dymola-2025xRefresh1-x86_64/
+  DYMOLA_EXECUTABLE: /usr/local/bin/dymola
+  DYMOLA_WHL: Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+
+build_fmu:
+  script:
+    - mo2fmu model.mo ./output
+----
+
+== Next Steps
+
+* Try the xref:usage-cli.adoc[command-line interface]
+* Explore the xref:usage-python.adoc[Python API]
+* Check out xref:examples.adoc[examples]

@@ -1,14 +1,116 @@
 = Quickstart Guide 
 :navtitle: Quickstart
 
-To get started with compiling and using {project_name}, you can either
+Get up and running with {project_name} in minutes. This guide covers installation and your first FMU conversion.
 
-- [x] install https://docs.feelpp.org/user/latest/install/index.html[{feelpp} Debian or Ubuntu packages] if you use such systems or
-- [x] use DevContainers in Visual Studio Code as described below.
+== Prerequisites
 
-To get started with viewing and creating documentation, checkout the project xref:env/antora.adoc[Antora] page.
+Before installing mo2fmu, ensure you have:
+
+* Python 3.8.1 or higher
+* Dymola installation (version 2024 or later recommended)
+* pip or uv package manager
+
+== Installation
+
+=== From PyPI (Recommended)
+
+Install the latest stable release from PyPI using pip:
+
+[source,bash]
+----
+pip install feelpp-mo2fmu
+----
+
+Or using uv (faster):
+
+[source,bash]
+----
+uv pip install feelpp-mo2fmu
+----
+
+=== From Source
+
+For development or to use the latest unreleased features:
+
+[source,bash]
+----
+git clone https://github.com/feelpp/mo2fmu.git
+cd mo2fmu
+uv venv .venv-mo2fmu
+source .venv-mo2fmu/bin/activate  # On Windows: .venv-mo2fmu\Scripts\activate
+uv pip install -e ".[all]"
+----
+
+The `[all]` extra installs additional development dependencies including testing and linting tools.
+
+== Configuration
+
+=== Dymola Environment Variables
+
+Configure Dymola paths using environment variables:
+
+[source,bash]
+----
+export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+----
+
+[TIP]
+====
+Add these to your `~/.bashrc` or `~/.zshrc` for persistent configuration.
+====
+
+For more configuration options, see xref:configuration.adoc[Configuration Guide].
+
+== Quick Start: First FMU Conversion
+
+=== 1. Create a Simple Modelica Model
+
+Create a file named `SimpleModel.mo`:
+
+[source,modelica]
+----
+model SimpleModel
+  Real x(start=1);
+equation
+  der(x) = -x;
+end SimpleModel;
+----
+
+=== 2. Convert to FMU
+
+Using the command line:
+
+[source,bash]
+----
+mo2fmu SimpleModel.mo ./output
+----
+
+This creates `SimpleModel.fmu` in the `./output` directory.
+
+=== 3. Verify the Output
+
+Check that the FMU was created:
+
+[source,bash]
+----
+ls -lh output/SimpleModel.fmu
+----
+
+You should see your generated FMU file!
+
+== Next Steps
+
+* Learn about xref:usage-cli.adoc[command-line options]
+* Explore the xref:usage-python.adoc[Python API]
+* Check out xref:examples.adoc[more examples]
+* Read about xref:configuration.adoc[advanced configuration]
 
 == Using DevContainers in Visual Studio Code
+
+For a consistent development environment, you can use DevContainers:
 
 [IMPORTANT]
 ====

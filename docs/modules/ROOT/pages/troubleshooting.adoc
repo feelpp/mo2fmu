@@ -1,0 +1,580 @@
+= Troubleshooting
+:navtitle: Troubleshooting
+
+This guide helps you diagnose and fix common issues when using mo2fmu.
+
+== Common Issues
+
+=== Dymola Not Found
+
+*Error Message:*
+----
+dymola module is not available, has_dymola: False
+dymola is not available, mo2fmu failed
+----
+
+*Causes:*
+
+* Dymola path environment variables not set
+* Dymola wheel file not found
+* Incorrect paths in configuration
+
+*Solutions:*
+
+1. **Verify environment variables:**
++
+[source,bash]
+----
+echo $DYMOLA_ROOT
+echo $DYMOLA_EXECUTABLE
+echo $DYMOLA_WHL
+----
+
+2. **Check that the wheel file exists:**
++
+[source,bash]
+----
+ls -l $DYMOLA_ROOT/$DYMOLA_WHL
+----
+
+3. **Find the wheel file if path is wrong:**
++
+[source,bash]
+----
+find $DYMOLA_ROOT -name "dymola*.whl"
+----
+
+4. **Set environment variables correctly:**
++
+[source,bash]
+----
+export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+----
+
+=== FMU Already Exists
+
+*Error Message:*
+----
+model.fmu exists in ./output; use `--force` to overwrite.
+----
+
+*Solution:*
+
+Use the `-f` or `--force` flag:
+
+[source,bash]
+----
+mo2fmu -f model.mo ./output
+----
+
+Or in Python:
+
+[source,python]
+----
+mo2fmu("model.mo", "./output", force=True)
+----
+
+=== Output Directory Same as Current Directory
+
+*Error Message:*
+----
+the destination directory should be different from /current/directory
+----
+
+*Cause:*
+
+mo2fmu prevents writing FMUs to the current working directory to avoid conflicts.
+
+*Solution:*
+
+Specify a different output directory:
+
+[source,bash]
+----
+mo2fmu model.mo ./output    # Good
+mo2fmu model.mo ./fmus      # Good
+mo2fmu model.mo .           # Bad - same as cwd
+----
+
+=== License Issues
+
+*Error Message:*
+----
+translateModelFMU returned False
+Dymola License Information: [license error details]
+----
+
+*Causes:*
+
+* No valid Dymola license
+* License server unreachable
+* License expired
+
+*Solutions:*
+
+1. **Check Dymola license:**
++
+[source,bash]
+----
+$DYMOLA_EXECUTABLE -check
+----
+
+2. **Set license file environment variable:**
++
+[source,bash]
+----
+export DYMOLA_RUNTIME_LICENSE=/path/to/license.lic
+----
+
+3. **Verify license server connectivity:**
++
+[source,bash]
+----
+ping your-license-server
+----
+
+4. **Contact your Dymola license administrator**
+
+=== Package Loading Fails
+
+*Error Message:*
+Errors in Dymola log indicating package cannot be loaded.
+
+*Causes:*
+
+* Package path incorrect
+* Package dependencies missing
+* Package syntax errors
+
+*Solutions:*
+
+1. **Verify package exists:**
++
+[source,bash]
+----
+ls -l /path/to/package.mo
+----
+
+2. **Check package dependencies:**
++
+Ensure all required packages are loaded:
++
+[source,bash]
+----
+mo2fmu --load Modelica --load Dependency1 --load Dependency2 model.mo ./output
+----
+
+3. **Use verbose mode to see detailed errors:**
++
+[source,bash]
+----
+mo2fmu -v --load MyPackage model.mo ./output
+----
+
+=== Display/X11 Errors (Linux)
+
+*Error Message:*
+----
+Error: Can't open display
+----
+
+*Cause:*
+
+Missing or misconfigured virtual framebuffer.
+
+*Solution:*
+
+Install Xvfb:
+
+[source,bash]
+----
+# Debian/Ubuntu
+sudo apt-get install xvfb
+
+# RHEL/CentOS/Fedora
+sudo yum install xorg-x11-server-Xvfb
+
+# Arch Linux
+sudo pacman -S xorg-server-xvfb
+----
+
+=== Permission Denied
+
+*Error Message:*
+----
+Permission denied: '/opt/dymola-*/...'
+----
+
+*Causes:*
+
+* Insufficient permissions to access Dymola files
+* Insufficient permissions to write to output directory
+
+*Solutions:*
+
+1. **Fix Dymola directory permissions:**
++
+[source,bash]
+----
+sudo chmod -R o+r /opt/dymola-*
+----
+
+2. **Create output directory with correct permissions:**
++
+[source,bash]
+----
+mkdir -p ./output
+chmod 755 ./output
+----
+
+3. **Run with appropriate user permissions**
+
+=== Model Translation Fails
+
+*Error Message:*
+----
+translateModelFMU returned False
+----
+
+*Causes:*
+
+* Syntax errors in Modelica model
+* Missing dependencies
+* Unsupported Modelica features
+* Dymola configuration issues
+
+*Solutions:*
+
+1. **Enable verbose mode:**
++
+[source,bash]
+----
+mo2fmu -v model.mo ./output
+----
+
+2. **Check model syntax:**
++
+Open the model in Dymola and check for errors.
+
+3. **Verify model compiles in Dymola:**
++
+Try translating the model directly in Dymola before using mo2fmu.
+
+4. **Check Dymola log:**
++
+Look for detailed error messages in the output.
+
+=== Import Errors
+
+*Error Message:*
+----
+ModuleNotFoundError: No module named 'feelpp'
+----
+
+*Cause:*
+
+mo2fmu package not installed or not in Python path.
+
+*Solution:*
+
+Install mo2fmu:
+
+[source,bash]
+----
+pip install feelpp-mo2fmu
+----
+
+Or for development:
+
+[source,bash]
+----
+pip install -e .
+----
+
+=== FMU File Not Found After Generation
+
+*Error Message:*
+----
+Expected FMU 'model.fmu' not found in /current/directory
+----
+
+*Causes:*
+
+* FMU generation failed silently
+* Wrong working directory
+* File system issues
+
+*Solutions:*
+
+1. **Check Dymola error log in verbose mode**
+
+2. **Verify working directory:**
++
+[source,python]
+----
+import os
+print(f"Current directory: {os.getcwd()}")
+----
+
+3. **Search for FMU files:**
++
+[source,bash]
+----
+find . -name "*.fmu" -type f
+----
+
+== Debugging Techniques
+
+=== Enable Verbose Mode
+
+Always use verbose mode when troubleshooting:
+
+[source,bash]
+----
+mo2fmu -v model.mo ./output
+----
+
+Or in Python:
+
+[source,python]
+----
+mo2fmu("model.mo", "./output", verbose=True)
+----
+
+=== Check Environment
+
+Verify your environment setup:
+
+[source,bash]
+----
+#!/bin/bash
+
+echo "=== Environment Check ==="
+echo "DYMOLA_ROOT: $DYMOLA_ROOT"
+echo "DYMOLA_EXECUTABLE: $DYMOLA_EXECUTABLE"
+echo "DYMOLA_WHL: $DYMOLA_WHL"
+echo ""
+
+echo "=== Path Verification ==="
+echo -n "Dymola root exists: "
+[ -d "$DYMOLA_ROOT" ] && echo "Yes" || echo "No"
+
+echo -n "Dymola executable exists: "
+[ -f "$DYMOLA_EXECUTABLE" ] && echo "Yes" || echo "No"
+
+echo -n "Dymola wheel exists: "
+[ -f "$DYMOLA_ROOT/$DYMOLA_WHL" ] && echo "Yes" || echo "No"
+
+echo ""
+echo "=== Python Environment ==="
+python3 --version
+python3 -c "import feelpp.mo2fmu; print('mo2fmu installed:', True)" 2>/dev/null || echo "mo2fmu installed: False"
+----
+
+Save as `check_env.sh` and run:
+
+[source,bash]
+----
+chmod +x check_env.sh
+./check_env.sh
+----
+
+=== Isolate the Problem
+
+Test with a minimal model:
+
+.minimal.mo
+[source,modelica]
+----
+model Minimal
+  Real x(start=1);
+equation
+  der(x) = -x;
+end Minimal;
+----
+
+[source,bash]
+----
+mo2fmu -v minimal.mo ./test_output
+----
+
+If this works, the issue is with your specific model.
+
+=== Check Dymola Directly
+
+Test Dymola Python interface:
+
+[source,python]
+----
+import sys
+from pathlib import Path
+
+# Add Dymola to path
+dymola_root = "/opt/dymola-2025xRefresh1-x86_64/"
+dymola_whl = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
+sys.path.append(str(Path(dymola_root) / Path(dymola_whl)))
+
+# Try importing
+try:
+    import dymola
+    from dymola.dymola_interface import DymolaInterface
+    print("✓ Dymola import successful")
+    
+    # Try instantiating
+    dymola_interface = DymolaInterface()
+    print("✓ Dymola interface created")
+    dymola_interface.close()
+    print("✓ Dymola interface closed")
+    
+except ImportError as e:
+    print(f"✗ Import error: {e}")
+except Exception as e:
+    print(f"✗ Error: {e}")
+----
+
+== Getting Help
+
+=== Collect Information
+
+When reporting issues, include:
+
+1. **mo2fmu version:**
++
+[source,bash]
+----
+pip show feelpp-mo2fmu
+----
+
+2. **Python version:**
++
+[source,bash]
+----
+python3 --version
+----
+
+3. **Dymola version:**
++
+[source,bash]
+----
+$DYMOLA_EXECUTABLE -version
+----
+
+4. **Operating system:**
++
+[source,bash]
+----
+uname -a
+----
+
+5. **Full error output with verbose mode**
+
+6. **Minimal reproducible example**
+
+=== Report Issues
+
+Report issues on GitHub:
+
+https://github.com/feelpp/mo2fmu/issues
+
+Include:
+
+* Clear description of the problem
+* Steps to reproduce
+* Expected vs. actual behavior
+* Environment information
+* Error messages and logs
+
+=== Community Support
+
+* GitHub Discussions: https://github.com/feelpp/mo2fmu/discussions
+* Feel++ Website: https://feelpp.org
+
+== Advanced Debugging
+
+=== Python Debugger
+
+Use pdb for detailed debugging:
+
+[source,python]
+----
+import pdb
+from feelpp.mo2fmu import mo2fmu
+
+pdb.set_trace()  # Breakpoint
+mo2fmu("model.mo", "./output", verbose=True)
+----
+
+=== Logging
+
+Enable detailed Python logging:
+
+[source,python]
+----
+import logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+from feelpp.mo2fmu import mo2fmu
+mo2fmu("model.mo", "./output", verbose=True)
+----
+
+=== Dymola Log Files
+
+Check Dymola-generated log files:
+
+* `dslog.txt` - Dymola simulation log
+* `buildlog.txt` - Compilation log
+* `dsin.txt` - Initial values
+
+[source,bash]
+----
+cat dslog.txt
+cat buildlog.txt
+----
+
+== Performance Issues
+
+=== Slow FMU Generation
+
+*Causes:*
+
+* Large models
+* Complex dependencies
+* Disk I/O bottlenecks
+
+*Solutions:*
+
+1. **Use SSD for temporary files**
+
+2. **Close unnecessary applications**
+
+3. **Increase system resources allocated to Dymola**
+
+4. **Optimize Modelica model before export**
+
+=== Memory Issues
+
+*Symptom:*
+
+Process killed or out-of-memory errors.
+
+*Solutions:*
+
+1. **Increase available memory**
+
+2. **Close other applications**
+
+3. **Simplify the model**
+
+4. **Use a machine with more RAM**
+
+== Next Steps
+
+* Review xref:configuration.adoc[configuration guide]
+* Check xref:examples.adoc[examples] for working code
+* Read xref:usage-cli.adoc[CLI documentation]
+* Explore xref:usage-python.adoc[Python API]

@@ -1,4 +1,16 @@
 * xref:index.adoc[Introduction]
-* Setting up the development Environment
-** xref:env/antora.adoc[]
-** xref:env/githubactions.adoc[]
+* xref:overview.adoc[Overview]
+* xref:quickstart.adoc[Quickstart]
+
+* Usage
+** xref:usage-cli.adoc[Command-Line Interface]
+** xref:usage-python.adoc[Python API]
+
+* xref:configuration.adoc[Configuration]
+* xref:examples.adoc[Examples]
+* xref:troubleshooting.adoc[Troubleshooting]
+* xref:faq.adoc[FAQ]
+
+* Development Environment
+** xref:env/antora.adoc[Antora Documentation]
+** xref:env/githubactions.adoc[GitHub Actions]

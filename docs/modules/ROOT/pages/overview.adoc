@@ -1,53 +1,100 @@
 = Overview of {project_name}
 :navtitle: Overview
 
-== Organisation
+== What is mo2fmu?
+
+{project_name} is a Python package that converts Modelica models (`.mo` files) into Functional Mock-up Units (FMUs) using Dymola. FMUs are standardized simulation components that can be used across different simulation platforms supporting the Functional Mock-up Interface (FMI) standard.
+
+== Why Use mo2fmu?
+
+* *Standardization*: Create FMUs that work with any FMI-compliant tool
+* *Automation*: Automate FMU generation in your CI/CD pipelines
+* *Flexibility*: Customize FMU generation with various options and flags
+* *Integration*: Easy integration with Python workflows and scripts
+* *Performance*: Generate optimized 64-bit FMUs with code export enabled
+
+== How It Works
+
+mo2fmu acts as a wrapper around Dymola's FMU translation capabilities, providing:
+
+1. *Python Interface*: A clean Python API for programmatic access
+2. *Command-Line Tool*: Quick conversion via terminal commands
+3. *Configuration Management*: Environment-based configuration for Dymola paths
+4. *Headless Operation*: Uses virtual framebuffer (Xvfb) for headless Dymola execution
+5. *Error Handling*: Comprehensive error reporting and logging
+
+== Project Structure
 
 The directory structure of the project is as follows:
+
 ----
 .
-├── docs
-│   ├── antora
-│   └── modules
-└── src
-    └── cases
-
-5 directories
+├── docs/                      # Documentation (Antora-based)
+│   ├── antora.yml
+│   └── modules/
+├── src/
+│   ├── cases/                 # Example Modelica files
+│   │   ├── ode_exp.mo
+│   │   └── ode_sin.mo
+│   └── python/
+│       └── feelpp/
+│           └── mo2fmu/        # Main package
+│               ├── mo2fmu.py  # Core conversion logic
+│               └── __init__.py
+├── tests/                     # Unit tests
+│   └── test_mo2fmu.py
+├── pyproject.toml            # Package configuration
+└── README.md
 ----
 
-- The `docs` directory contains the documentation of the project and uses antora to generate the documentation.
-- The `src` directory contains initially some {cpp} and {python} {feelpp} source code of the project to help you get started.
+== FMI Standard Support
 
-[NOTE]
-====
-{feelpp} is a {cpp} library for the numerical simulation of partial differential equations. It is designed to be easy to use and to extend.
-{feelpp} is a free software distributed under the terms of the GNU General Public License version 3.
-The documentation is available https://docs.feelpp.org[> here].
-====
+mo2fmu supports the Functional Mock-up Interface (FMI) standard:
 
-== How to build the project
+* *FMI Versions*: FMI 2.0 (default)
+* *FMI Types*:
+** **CS** (Co-Simulation): FMU acts as black box with solver
+** **ME** (Model Exchange): FMU provides equations, external solver needed
+** **all**: Both CS and ME in one FMU
+** **csSolver**: Co-Simulation with specific solver configuration
 
-You need first to follow the xref:quickstart.adoc[quickstart] to get the {feelpp} environment.
-The installation procedure uses xref:env/cmake.adoc[Cmake] for the {cpp} programs and create a bundle of this project.
-The steps are as follows:
+== Technical Features
 
-[source,bash]
-----
-$ cmake --preset default # <1>
-$ cmake --build --preset default # <2>
-$ cmake --build --preset default -t install # <3>
-$ ctest --preset default # <4>
-$ cmake --build --preset default -t package # <5>
-----
-<1> Configure the project
-<2> Build the project
-<3> Install the project
-<4> Run the tests
-<5> Package the project
+=== Optimization Settings
 
-== How to start documenting your work
+mo2fmu automatically configures Dymola for optimal FMU generation:
 
-The documentation is written in AsciiDoc and uses Antora to generate the documentation. Please check the project xref:env/antora.adoc[Antora] page to get started.
+* *64-bit Only*: Forces 64-bit compilation (`Advanced.CompileWith64=2`)
+* *Code Export*: Enables license-free execution (`Advanced.EnableCodeExport=true`)
+* *Optimizations*: Full compiler optimizations (`Advanced.Define.GlobalOptimizations=2`)
+
+=== Dependencies
+
+mo2fmu requires:
+
+* Python 3.8.1 or higher
+* Dymola installation with Python interface
+* System dependencies:
+** `xvfbwrapper`: Virtual framebuffer for headless operation
+** `click`: Command-line interface
+** `spdlog`: Logging functionality
+** `pathlib`: Path manipulation
+
+== Use Cases
+
+* *Model Export*: Convert Modelica models for use in other simulation tools
+* *CI/CD Integration*: Automate FMU generation in build pipelines
+* *Model Distribution*: Package models for distribution without sharing source
+* *Multi-Platform Simulation*: Create FMUs that work across different platforms
+* *Co-Simulation*: Enable coupling of models from different domains
+
+== Next Steps
+
+* xref:quickstart.adoc[Install mo2fmu] and get started
+* Learn about xref:usage-cli.adoc[command-line usage]
+* Explore the xref:usage-python.adoc[Python API]
+* Configure xref:configuration.adoc[Dymola settings]
+* Check out xref:examples.adoc[usage examples]
 
 
 

@@ -1,0 +1,424 @@
+= Frequently Asked Questions
+:navtitle: FAQ
+
+Common questions and answers about mo2fmu.
+
+== General
+
+=== What is mo2fmu?
+
+mo2fmu is a Python package that converts Modelica models (`.mo` files) into Functional Mock-up Units (FMUs) using Dymola. It provides both a command-line interface and a Python API for easy integration into workflows.
+
+=== What is an FMU?
+
+An FMU (Functional Mock-up Unit) is a standardized format for exchanging dynamic models. FMUs follow the Functional Mock-up Interface (FMI) standard, allowing models created in one tool to be used in another.
+
+=== Do I need Dymola to use mo2fmu?
+
+Yes, mo2fmu requires a Dymola installation with a valid license. Dymola is used internally to translate Modelica models to FMUs.
+
+=== Is mo2fmu free?
+
+Yes, mo2fmu itself is free and open source (MIT License). However, you need a licensed copy of Dymola to use it.
+
+=== What FMI versions are supported?
+
+Currently, mo2fmu supports FMI 2.0. Support for FMI 3.0 may be added in future versions.
+
+== Installation
+
+=== How do I install mo2fmu?
+
+Install via pip:
+
+[source,bash]
+----
+pip install feelpp-mo2fmu
+----
+
+Or with uv (faster):
+
+[source,bash]
+----
+uv pip install feelpp-mo2fmu
+----
+
+See xref:quickstart.adoc[Quickstart] for details.
+
+=== What Python versions are supported?
+
+mo2fmu requires Python 3.8.1 or higher. It's tested on Python 3.9, 3.10, 3.11, 3.12, and 3.13.
+
+=== Can I install from source?
+
+Yes:
+
+[source,bash]
+----
+git clone https://github.com/feelpp/mo2fmu.git
+cd mo2fmu
+pip install -e ".[all]"
+----
+
+=== What dependencies does mo2fmu have?
+
+Core dependencies:
+
+* `click` - Command-line interface
+* `spdlog` - Logging
+* `xvfbwrapper` - Virtual framebuffer (Linux)
+* `pathlib` - Path manipulation
+
+Plus Dymola's Python interface.
+
+== Usage
+
+=== How do I convert a Modelica file to FMU?
+
+Simple command:
+
+[source,bash]
+----
+mo2fmu model.mo ./output
+----
+
+See xref:usage-cli.adoc[CLI Usage] for more options.
+
+=== Can I use mo2fmu in Python scripts?
+
+Yes:
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+
+mo2fmu("model.mo", "./output", verbose=True)
+----
+
+See xref:usage-python.adoc[Python API] for details.
+
+=== How do I load additional Modelica packages?
+
+Use the `--load` option:
+
+[source,bash]
+----
+mo2fmu --load Modelica --load Buildings model.mo ./output
+----
+
+=== What's the difference between CS and ME FMUs?
+
+* **CS (Co-Simulation)**: FMU includes a solver, acts as a black box. Easier to use.
+* **ME (Model Exchange)**: FMU provides equations only, requires external solver. More flexible.
+
+Use `--type cs` or `--type me` to specify, or `--type all` for both.
+
+=== Can I customize the FMU name?
+
+Yes, use `--fmumodelname`:
+
+[source,bash]
+----
+mo2fmu --fmumodelname CustomName model.mo ./output
+----
+
+Creates `CustomName.fmu` instead of `model.fmu`.
+
+=== How do I overwrite an existing FMU?
+
+Use the `-f` or `--force` flag:
+
+[source,bash]
+----
+mo2fmu -f model.mo ./output
+----
+
+== Configuration
+
+=== How do I configure Dymola paths?
+
+Set environment variables:
+
+[source,bash]
+----
+export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+----
+
+See xref:configuration.adoc[Configuration] for details.
+
+=== Where can I find the Dymola Python wheel?
+
+The wheel is typically at:
+
+----
+$DYMOLA_ROOT/Modelica/Library/python_interface/dymola-<version>-py3-none-any.whl
+----
+
+To find it:
+
+[source,bash]
+----
+find $DYMOLA_ROOT -name "dymola*.whl"
+----
+
+=== Can I use different Dymola versions?
+
+Yes, mo2fmu works with Dymola 2024x and 2025x. Just configure the appropriate paths for your version.
+
+=== Do I need X11 on Linux?
+
+No, mo2fmu uses Xvfb (virtual framebuffer) for headless operation. Just ensure Xvfb is installed:
+
+[source,bash]
+----
+sudo apt-get install xvfb
+----
+
+== Features
+
+=== What FMI types can mo2fmu generate?
+
+* `cs` - Co-Simulation
+* `me` - Model Exchange
+* `all` - Both CS and ME
+* `csSolver` - Co-Simulation with solver
+
+=== Are the generated FMUs license-free?
+
+Yes! mo2fmu automatically enables Dymola's code export feature (`Advanced.EnableCodeExport=true`), which creates FMUs that don't require a Dymola license to run.
+
+=== What optimizations are applied?
+
+mo2fmu automatically configures:
+
+* 64-bit only compilation
+* Code export enabled
+* Full compiler optimizations
+* License-free execution
+
+=== Can I pass custom Dymola flags?
+
+Yes, use `--flags`:
+
+[source,bash]
+----
+mo2fmu --flags "Advanced.LogEvents=true" model.mo ./output
+----
+
+=== Does mo2fmu support Windows?
+
+Yes, mo2fmu works on Windows, Linux, and macOS. The commands are the same across platforms.
+
+== Troubleshooting
+
+=== Why does mo2fmu say "dymola is not available"?
+
+This usually means:
+
+1. Dymola paths are not configured correctly
+2. The Dymola wheel file doesn't exist
+3. Permissions issues
+
+See xref:troubleshooting.adoc#dymola-not-found[Troubleshooting: Dymola Not Found].
+
+=== Why does FMU generation fail?
+
+Common causes:
+
+* Syntax errors in Modelica model
+* Missing package dependencies
+* Dymola license issues
+* Incorrect configuration
+
+Use `-v` flag for detailed error messages:
+
+[source,bash]
+----
+mo2fmu -v model.mo ./output
+----
+
+=== How do I debug conversion failures?
+
+1. Enable verbose mode: `-v`
+2. Check Dymola can open your model directly
+3. Verify all packages are loaded
+4. Check license status
+5. Review Dymola log files
+
+See xref:troubleshooting.adoc[Troubleshooting] for more.
+
+=== Can I see what Dymola commands are executed?
+
+Yes, use verbose mode to see detailed logging:
+
+[source,bash]
+----
+mo2fmu -v model.mo ./output
+----
+
+=== Why is conversion slow?
+
+* Large or complex models take time
+* Disk I/O can be a bottleneck
+* Dymola compilation overhead
+
+Consider using an SSD and ensuring sufficient system resources.
+
+== Integration
+
+=== Can I use mo2fmu in CI/CD pipelines?
+
+Yes! mo2fmu works great in automated pipelines. See xref:examples.adoc#example-10-ci-cd-pipeline-integration[CI/CD Example].
+
+Example GitHub Actions:
+
+[source,yaml]
+----
+- name: Generate FMU
+  run: mo2fmu model.mo ./output
+  env:
+    DYMOLA_ROOT: /opt/dymola-2025xRefresh1-x86_64/
+    DYMOLA_RUNTIME_LICENSE: ${{ secrets.DYMOLA_LICENSE }}
+----
+
+=== Can I batch process multiple models?
+
+Yes, easily with Python:
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+
+models = ["model1.mo", "model2.mo", "model3.mo"]
+for model in models:
+    mo2fmu(model, "./output", force=True)
+----
+
+See xref:examples.adoc#example-9-batch-processing[Batch Processing Example].
+
+=== Does mo2fmu work with Docker?
+
+Yes, you can run mo2fmu in Docker containers. Ensure Dymola is installed in the container and Xvfb is available.
+
+=== Can I use mo2fmu with Makefiles?
+
+Yes! See xref:examples.adoc#example-14-makefile-integration[Makefile Integration Example].
+
+== Advanced
+
+=== Can I modify FMU parameters?
+
+Parameter modification should be done in the Modelica model before conversion. The FMU will include the parameters defined in your model.
+
+=== How do I include specific variables in the FMU?
+
+Control variable visibility in your Modelica model using the appropriate annotations (e.g., `output`, `input`).
+
+=== Can I generate FMUs for Linux, Windows, and macOS?
+
+FMUs are cross-platform by design, but the binaries are platform-specific. Generate FMUs on each target platform, or use Dymola's cross-compilation features.
+
+=== How large are generated FMUs?
+
+FMU size depends on:
+
+* Model complexity
+* Included libraries
+* Whether sources are included
+* Platform binaries
+
+Typical FMUs range from a few MB to hundreds of MB.
+
+=== Can I inspect the generated FMU?
+
+Yes, FMUs are ZIP archives. You can extract and inspect:
+
+[source,bash]
+----
+unzip model.fmu -d model_fmu
+ls -lR model_fmu/
+----
+
+Key contents:
+
+* `modelDescription.xml` - FMU metadata
+* `binaries/` - Platform-specific libraries
+* `sources/` - Model source code (if included)
+
+== Development
+
+=== How do I contribute to mo2fmu?
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+See the GitHub repository: https://github.com/feelpp/mo2fmu
+
+=== How do I report bugs?
+
+Report issues on GitHub Issues:
+https://github.com/feelpp/mo2fmu/issues
+
+Include:
+
+* mo2fmu version
+* Python version
+* Dymola version
+* Operating system
+* Minimal reproducible example
+* Error messages
+
+=== Is there a mailing list or forum?
+
+Use GitHub Discussions:
+https://github.com/feelpp/mo2fmu/discussions
+
+=== Where is the documentation source?
+
+Documentation is in the `docs/` directory of the repository, written in AsciiDoc and built with Antora.
+
+== License
+
+=== What license is mo2fmu under?
+
+mo2fmu is licensed under the MIT License, which is permissive and allows commercial use.
+
+=== Can I use mo2fmu in commercial projects?
+
+Yes, the MIT License allows commercial use.
+
+=== Do I need to credit mo2fmu?
+
+While not required, crediting mo2fmu is appreciated. See the LICENSE file for details.
+
+== Support
+
+=== Where can I get help?
+
+* Documentation: https://feelpp.github.io/mo2fmu
+* GitHub Issues: https://github.com/feelpp/mo2fmu/issues
+* GitHub Discussions: https://github.com/feelpp/mo2fmu/discussions
+* Feel++ Community: https://feelpp.org
+
+=== Is commercial support available?
+
+For commercial support or consulting, contact the Feel++ team through https://feelpp.org.
+
+=== How do I stay updated?
+
+* Watch the GitHub repository
+* Follow Feel++ updates
+* Check the documentation for new versions
+
+== Next Steps
+
+* Get started with xref:quickstart.adoc[Quickstart]
+* Learn xref:usage-cli.adoc[command-line usage]
+* Explore the xref:usage-python.adoc[Python API]
+* Browse xref:examples.adoc[examples]
+* Configure your xref:configuration.adoc[environment]

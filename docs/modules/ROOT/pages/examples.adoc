@@ -1,0 +1,590 @@
+= Examples
+:navtitle: Examples
+
+This page provides practical examples of using mo2fmu in various scenarios, from simple conversions to complex workflows.
+
+== Basic Examples
+
+=== Example 1: Simple ODE Model
+
+Create a simple ordinary differential equation model:
+
+.ode_exp.mo
+[source,modelica]
+----
+model ode_exp
+  parameter Real a = -1;
+  Real x(start=1);
+equation
+  der(x) = a * x;
+end ode_exp;
+----
+
+Convert to FMU:
+
+[source,bash]
+----
+mo2fmu ode_exp.mo ./output
+----
+
+=== Example 2: Sinusoidal Model
+
+.ode_sin.mo
+[source,modelica]
+----
+model ode_sin
+  parameter Real omega = 1;
+  Real x(start=0);
+  Real y(start=1);
+equation
+  der(x) = omega * y;
+  der(y) = -omega * x;
+end ode_sin;
+----
+
+Convert with verbose output:
+
+[source,bash]
+----
+mo2fmu -v ode_sin.mo ./output
+----
+
+== Working with Packages
+
+=== Example 3: Model with Package Dependencies
+
+.MyModel.mo
+[source,modelica]
+----
+within MyPackage;
+model MyModel
+  import Modelica.Math;
+  parameter Real frequency = 1.0;
+  Real y;
+equation
+  y = Math.sin(time * frequency);
+end MyModel;
+----
+
+Load the Modelica Standard Library:
+
+[source,bash]
+----
+mo2fmu --load Modelica MyModel.mo ./output
+----
+
+=== Example 4: Multiple Package Dependencies
+
+[source,bash]
+----
+mo2fmu --load Modelica \
+       --load Buildings \
+       --load MyCustomLibrary \
+       ComplexModel.mo ./output
+----
+
+== FMI Type Selection
+
+=== Example 5: Co-Simulation FMU
+
+Generate a Co-Simulation FMU for tool coupling:
+
+[source,bash]
+----
+mo2fmu --type cs model.mo ./cs_output
+----
+
+=== Example 6: Model Exchange FMU
+
+Generate a Model Exchange FMU for custom solvers:
+
+[source,bash]
+----
+mo2fmu --type me model.mo ./me_output
+----
+
+=== Example 7: Both Types
+
+Generate an FMU containing both CS and ME:
+
+[source,bash]
+----
+mo2fmu --type all model.mo ./output
+----
+
+== Python API Examples
+
+=== Example 8: Basic Python Script
+
+[source,python]
+----
+#!/usr/bin/env python3
+from feelpp.mo2fmu import mo2fmu
+
+def main():
+    success = mo2fmu(
+        mo="model.mo",
+        outdir="./fmus",
+        verbose=True,
+        force=True
+    )
+    
+    if success:
+        print("✓ FMU generated successfully")
+        return 0
+    else:
+        print("✗ FMU generation failed")
+        return 1
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())
+----
+
+=== Example 9: Batch Conversion
+
+Convert multiple models in a loop:
+
+[source,python]
+----
+from pathlib import Path
+from feelpp.mo2fmu import mo2fmu
+
+models = [
+    "ode_exp.mo",
+    "ode_sin.mo",
+    "spring_mass.mo"
+]
+
+output_dir = Path("./fmus")
+output_dir.mkdir(exist_ok=True)
+
+for model in models:
+    print(f"Converting {model}...")
+    success = mo2fmu(
+        mo=model,
+        outdir=str(output_dir),
+        type="cs",
+        verbose=False,
+        force=True
+    )
+    print(f"  {'✓' if success else '✗'} {model}")
+----
+
+=== Example 10: Configuration from JSON
+
+Load configuration from a JSON file:
+
+.config.json
+[source,json]
+----
+{
+  "models": [
+    {
+      "mo": "model1.mo",
+      "fmumodelname": "Model1",
+      "type": "cs",
+      "load": ["Modelica"]
+    },
+    {
+      "mo": "model2.mo",
+      "fmumodelname": "Model2",
+      "type": "all",
+      "load": ["Modelica", "Buildings"]
+    }
+  ],
+  "outdir": "./fmus",
+  "dymola_root": "/opt/dymola-2025xRefresh1-x86_64/"
+}
+----
+
+.convert.py
+[source,python]
+----
+import json
+from feelpp.mo2fmu import mo2fmu
+
+with open("config.json") as f:
+    config = json.load(f)
+
+for model_config in config["models"]:
+    print(f"Converting {model_config['mo']}...")
+    
+    success = mo2fmu(
+        mo=model_config["mo"],
+        outdir=config["outdir"],
+        fmumodelname=model_config.get("fmumodelname"),
+        load=tuple(model_config.get("load", [])),
+        type=model_config.get("type", "all"),
+        dymola_root=config.get("dymola_root"),
+        verbose=True,
+        force=True
+    )
+    
+    if not success:
+        print(f"Failed to convert {model_config['mo']}")
+----
+
+== Advanced Usage
+
+=== Example 11: Custom Dymola Flags
+
+Use specific Dymola translation flags:
+
+[source,bash]
+----
+mo2fmu -v \
+  --flags "Advanced.LogEvents=true" \
+  --flags "Advanced.GenerateVariableDependencies=true" \
+  --flags "-d=initialization" \
+  model.mo ./output
+----
+
+=== Example 12: Environment-Based Configuration
+
+.build_fmu.sh
+[source,bash]
+----
+#!/bin/bash
+
+# Configuration
+export DYMOLA_ROOT=/opt/dymola-2025xRefresh1-x86_64/
+export DYMOLA_EXECUTABLE=/usr/local/bin/dymola
+export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl
+
+# Model configuration
+MODEL="MyModel.mo"
+OUTPUT="./dist/fmus"
+FMI_TYPE="cs"
+
+# Create output directory
+mkdir -p "$OUTPUT"
+
+# Convert
+mo2fmu -v -f \
+  --type "$FMI_TYPE" \
+  --load Modelica \
+  "$MODEL" "$OUTPUT"
+
+# Check result
+if [ $? -eq 0 ]; then
+    echo "✓ FMU generated successfully"
+    ls -lh "$OUTPUT"/*.fmu
+else
+    echo "✗ FMU generation failed"
+    exit 1
+fi
+----
+
+=== Example 13: Automated Testing
+
+Test FMU generation in a test suite:
+
+.test_fmu_generation.py
+[source,python]
+----
+import pytest
+from pathlib import Path
+from feelpp.mo2fmu import mo2fmu
+
+@pytest.fixture
+def output_dir(tmp_path):
+    """Create temporary output directory."""
+    fmu_dir = tmp_path / "fmus"
+    fmu_dir.mkdir()
+    return fmu_dir
+
+def test_simple_model_conversion(output_dir):
+    """Test conversion of a simple model."""
+    success = mo2fmu(
+        mo="ode_exp.mo",
+        outdir=str(output_dir),
+        verbose=True
+    )
+    
+    assert success, "FMU conversion failed"
+    
+    # Verify FMU was created
+    fmu_file = output_dir / "ode_exp.fmu"
+    assert fmu_file.exists(), "FMU file not created"
+    assert fmu_file.stat().st_size > 0, "FMU file is empty"
+
+def test_cs_fmu_generation(output_dir):
+    """Test Co-Simulation FMU generation."""
+    success = mo2fmu(
+        mo="model.mo",
+        outdir=str(output_dir),
+        type="cs",
+        verbose=True
+    )
+    
+    assert success, "CS FMU conversion failed"
+
+def test_with_package_loading(output_dir):
+    """Test conversion with package loading."""
+    success = mo2fmu(
+        mo="MyModel.mo",
+        outdir=str(output_dir),
+        load=("Modelica",),
+        verbose=True
+    )
+    
+    assert success, "Conversion with packages failed"
+----
+
+Run tests:
+
+[source,bash]
+----
+pytest test_fmu_generation.py -v
+----
+
+=== Example 14: Makefile Integration
+
+.Makefile
+[source,makefile]
+----
+# Configuration
+MODELS := ode_exp.mo ode_sin.mo
+OUTPUT_DIR := dist/fmus
+FMI_TYPE := cs
+
+# Derived
+FMUS := $(patsubst %.mo,$(OUTPUT_DIR)/%.fmu,$(MODELS))
+
+.PHONY: all clean help
+
+all: $(FMUS)
+
+$(OUTPUT_DIR)/%.fmu: %.mo
+	@echo "Converting $< to FMU..."
+	@mkdir -p $(OUTPUT_DIR)
+	mo2fmu -f --type $(FMI_TYPE) $< $(OUTPUT_DIR)
+
+clean:
+	rm -rf $(OUTPUT_DIR)
+	rm -f *.mat dsin.txt dslog.txt *.log
+
+help:
+	@echo "Available targets:"
+	@echo "  all    - Build all FMUs"
+	@echo "  clean  - Remove generated files"
+	@echo "  help   - Show this help message"
+----
+
+Usage:
+
+[source,bash]
+----
+make all
+----
+
+== Real-World Scenarios
+
+=== Example 15: Building System Model
+
+.HVACSystem.mo
+[source,modelica]
+----
+within Buildings.Examples;
+model HVACSystem
+  import Buildings;
+  
+  parameter Real T_setpoint = 293.15 "Temperature setpoint (K)";
+  
+  Buildings.Fluid.Sources.Boundary_pT source(
+    redeclare package Medium = Buildings.Media.Air,
+    nPorts=1);
+    
+  Buildings.Fluid.Actuators.Dampers.Exponential damper(
+    redeclare package Medium = Buildings.Media.Air);
+    
+  // ... more components
+equation
+  // ... equations
+end HVACSystem;
+----
+
+Convert with Buildings library:
+
+[source,bash]
+----
+mo2fmu -v \
+  --load Modelica \
+  --load Buildings \
+  --type cs \
+  --fmumodelname HVAC \
+  HVACSystem.mo ./fmus
+----
+
+=== Example 16: Control System Export
+
+Export a control system for co-simulation:
+
+.PIDController.mo
+[source,modelica]
+----
+model PIDController
+  parameter Real Kp = 1.0 "Proportional gain";
+  parameter Real Ki = 0.5 "Integral gain";
+  parameter Real Kd = 0.1 "Derivative gain";
+  
+  input Real setpoint;
+  input Real measured;
+  output Real control;
+  
+protected
+  Real error;
+  Real integral(start=0);
+  Real derivative;
+  
+equation
+  error = setpoint - measured;
+  der(integral) = error;
+  derivative = der(error);
+  control = Kp * error + Ki * integral + Kd * derivative;
+end PIDController;
+----
+
+Generate FMU:
+
+[source,bash]
+----
+mo2fmu --type cs --fmumodelname PID PIDController.mo ./controllers
+----
+
+=== Example 17: Multi-Domain Model
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+
+# Configuration for multi-domain model
+config = {
+    "mo": "MultiDomainSystem.mo",
+    "outdir": "./fmus",
+    "load": (
+        "Modelica",
+        "Buildings",
+        "ModelicaServices"
+    ),
+    "flags": (
+        "Advanced.GenerateVariableDependencies=true",
+        "Advanced.CompileWith64=2"
+    ),
+    "type": "all",
+    "verbose": True,
+    "force": True
+}
+
+success = mo2fmu(**config)
+
+if success:
+    print("Multi-domain FMU generated successfully")
+else:
+    print("Failed to generate FMU")
+----
+
+=== Example 18: Parameterized Model Generation
+
+Generate multiple FMUs with different parameters:
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+from pathlib import Path
+
+# Parameters to vary
+configurations = [
+    {"name": "Fast", "params": "a=-2"},
+    {"name": "Normal", "params": "a=-1"},
+    {"name": "Slow", "params": "a=-0.5"}
+]
+
+for config in configurations:
+    print(f"Generating {config['name']} configuration...")
+    
+    # Would need to modify .mo file or use Modelica's parameter modification
+    # This is a simplified example
+    success = mo2fmu(
+        mo="ode_exp.mo",
+        outdir="./fmus",
+        fmumodelname=f"ode_exp_{config['name']}",
+        verbose=True,
+        force=True
+    )
+    
+    if success:
+        print(f"  ✓ {config['name']} FMU generated")
+    else:
+        print(f"  ✗ {config['name']} FMU failed")
+----
+
+== Troubleshooting Examples
+
+=== Example 19: Debugging Failed Conversion
+
+[source,python]
+----
+import logging
+from feelpp.mo2fmu import mo2fmu
+
+# Enable maximum verbosity
+logging.basicConfig(level=logging.DEBUG)
+
+# Try conversion with verbose mode
+print("Attempting FMU conversion...")
+success = mo2fmu(
+    mo="problematic_model.mo",
+    outdir="./debug_output",
+    verbose=True,  # Enable mo2fmu verbose
+    force=True
+)
+
+if not success:
+    print("\nConversion failed. Check:")
+    print("1. Dymola paths in environment variables")
+    print("2. Model syntax errors")
+    print("3. Package dependencies")
+    print("4. Dymola license")
+----
+
+=== Example 20: Retry with Fallback
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+import time
+
+def convert_with_retry(mo_file, output_dir, max_attempts=3):
+    """Try conversion with exponential backoff."""
+    for attempt in range(max_attempts):
+        if attempt > 0:
+            wait_time = 2 ** attempt
+            print(f"Waiting {wait_time}s before retry...")
+            time.sleep(wait_time)
+        
+        print(f"Attempt {attempt + 1}/{max_attempts}")
+        success = mo2fmu(
+            mo=mo_file,
+            outdir=output_dir,
+            verbose=True,
+            force=True
+        )
+        
+        if success:
+            print(f"Success on attempt {attempt + 1}")
+            return True
+    
+    print(f"Failed after {max_attempts} attempts")
+    return False
+
+# Usage
+convert_with_retry("model.mo", "./output")
+----
+
+== Next Steps
+
+* Review xref:usage-cli.adoc[CLI options] for command-line usage
+* Check xref:usage-python.adoc[Python API] for programmatic access
+* See xref:configuration.adoc[configuration guide] for setup details

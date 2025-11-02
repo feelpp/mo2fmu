@@ -5,10 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "feelpp-mo2fmu"
 version = "0.5.2"
-description = "Feel++ modelica to fmu converter package"
-readme = "README.md"
+description = "Feel++ Modelica → FMU converter (Dymola-based)"
+readme = { file = "README.md", content-type = "text/markdown" }
 license = { text = "MIT" }
 authors = [
+    { name = "Feel++ Consortium", email = "support@feelpp.org" },
     { name = "Christophe Prud'homme", email = "christophe.prudhomme@cemosis.fr" },
     { name = "Philippe Pinçon", email = "philippe.pincon@cemosis.fr" }
 ]
@@ -38,10 +39,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://feelpp.github.io/mo2fmu"
-Documentation = "https://feelpp.github.io/mo2fmu"
-Repository = "https://github.com/feelpp/mo2fmu"
+Homepage = "https://github.com/feelpp/mo2fmu"
+Source = "https://github.com/feelpp/mo2fmu"
 Issues = "https://github.com/feelpp/mo2fmu/issues"
+Organization = "https://pypi.org/org/feelpp/"
+Documentation = "https://feelpp.github.io/mo2fmu/"
 
 # Optional dependencies for testing and development.
 [project.optional-dependencies]

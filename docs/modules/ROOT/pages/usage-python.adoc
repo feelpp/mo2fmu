@@ -1,0 +1,417 @@
+= Python API Usage
+:navtitle: Python API
+
+The mo2fmu Python API provides programmatic access to FMU generation, making it easy to integrate into your Python workflows and automation scripts.
+
+== Importing the Module
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+----
+
+== Basic Usage
+
+=== Simple Conversion
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+
+result = mo2fmu(
+    mo="model.mo",
+    outdir="./output",
+    fmumodelname=None,  # Use default (model.mo stem)
+    load=None,
+    flags=None,
+    type="all",
+    version="2",
+    dymola_root="/opt/dymola-2025xRefresh1-x86_64/",
+    dymolapath="/usr/local/bin/dymola",
+    dymolawhl="Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl",
+    verbose=True,
+    force=False
+)
+
+if result:
+    print("FMU generated successfully!")
+else:
+    print("FMU generation failed!")
+----
+
+== Function Signature
+
+[source,python]
+----
+def mo2fmu(
+    mo: str,
+    outdir: str,
+    fmumodelname: Optional[str] = None,
+    load: Optional[tuple[str, ...]] = None,
+    flags: Optional[tuple[str, ...]] = None,
+    type: str = "all",
+    version: str = "2",
+    dymola_root: str = "/opt/dymola-2025xRefresh1-x86_64/",
+    dymolapath: str = "/usr/local/bin/dymola",
+    dymolawhl: str = "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl",
+    verbose: bool = False,
+    force: bool = False,
+) -> bool
+----
+
+== Parameters
+
+`mo` (str, required)::
+Path to the Modelica `.mo` file to convert.
+
+`outdir` (str, required)::
+Output directory for the generated FMU.
+
+`fmumodelname` (str, optional)::
+Custom name for the FMU model. If `None`, uses the `.mo` file stem.
+
+`load` (tuple[str, ...], optional)::
+Tuple of Modelica packages to load before conversion.
++
+[source,python]
+----
+load=("Modelica", "MyPackage")
+----
+
+`flags` (tuple[str, ...], optional)::
+Tuple of Dymola flags for FMU translation.
++
+[source,python]
+----
+flags=("-d=initialization", "Advanced.LogEvents=true")
+----
+
+`type` (str, optional)::
+FMI type: `"cs"`, `"me"`, `"all"`, or `"csSolver"`. Default: `"all"`.
+
+`version` (str, optional)::
+FMI version. Default: `"2"`.
+
+`dymola_root` (str, optional)::
+Path to Dymola root directory.
+
+`dymolapath` (str, optional)::
+Path to Dymola executable.
+
+`dymolawhl` (str, optional)::
+Path to Dymola wheel file, relative to `dymola_root`.
+
+`verbose` (bool, optional)::
+Enable verbose logging. Default: `False`.
+
+`force` (bool, optional)::
+Force overwrite of existing FMU. Default: `False`.
+
+== Return Value
+
+Returns `bool`:
+
+* `True`: Conversion successful
+* `False`: Conversion failed
+
+== Examples
+
+=== Example 1: Minimal Usage
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+
+# Simple conversion with defaults
+success = mo2fmu("model.mo", "./output", verbose=True)
+----
+
+=== Example 2: Custom FMU Name
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+
+success = mo2fmu(
+    mo="MyModel.mo",
+    outdir="./fmus",
+    fmumodelname="CustomName",
+    verbose=True
+)
+----
+
+=== Example 3: Load Additional Packages
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+
+success = mo2fmu(
+    mo="ComplexModel.mo",
+    outdir="./output",
+    load=("Modelica", "MyLibrary", "ThirdPartyPackage"),
+    verbose=True
+)
+----
+
+=== Example 4: Co-Simulation FMU Only
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+
+success = mo2fmu(
+    mo="SimulationModel.mo",
+    outdir="./cs_fmus",
+    type="cs",
+    verbose=True
+)
+----
+
+=== Example 5: With Dymola Flags
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+
+success = mo2fmu(
+    mo="model.mo",
+    outdir="./output",
+    flags=(
+        "-d=initialization",
+        "Advanced.GenerateVariableDependencies=true",
+        "Advanced.LogEvents=true"
+    ),
+    verbose=True,
+    force=True
+)
+----
+
+=== Example 6: Environment-Based Configuration
+
+[source,python]
+----
+import os
+from feelpp.mo2fmu import mo2fmu
+
+# Read from environment variables
+dymola_root = os.getenv("DYMOLA_ROOT", "/opt/dymola-2025xRefresh1-x86_64/")
+dymola_exec = os.getenv("DYMOLA_EXECUTABLE", "/usr/local/bin/dymola")
+dymola_whl = os.getenv("DYMOLA_WHL", "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl")
+
+success = mo2fmu(
+    mo="model.mo",
+    outdir="./output",
+    dymola_root=dymola_root,
+    dymolapath=dymola_exec,
+    dymolawhl=dymola_whl,
+    verbose=True
+)
+----
+
+=== Example 7: Batch Processing
+
+[source,python]
+----
+from pathlib import Path
+from feelpp.mo2fmu import mo2fmu
+
+# Convert multiple models
+models = [
+    "model1.mo",
+    "model2.mo",
+    "model3.mo"
+]
+
+output_dir = "./fmus"
+Path(output_dir).mkdir(exist_ok=True)
+
+results = {}
+for model in models:
+    print(f"Converting {model}...")
+    success = mo2fmu(
+        mo=model,
+        outdir=output_dir,
+        verbose=False,
+        force=True
+    )
+    results[model] = success
+    
+# Print summary
+print("\nConversion Summary:")
+for model, success in results.items():
+    status = "✓ Success" if success else "✗ Failed"
+    print(f"  {model}: {status}")
+----
+
+=== Example 8: Error Handling
+
+[source,python]
+----
+from feelpp.mo2fmu import mo2fmu
+import sys
+
+def convert_with_retry(mo_file, output_dir, max_retries=3):
+    """Convert with retry logic."""
+    for attempt in range(max_retries):
+        print(f"Attempt {attempt + 1}/{max_retries}")
+        success = mo2fmu(
+            mo=mo_file,
+            outdir=output_dir,
+            verbose=True,
+            force=True
+        )
+        
+        if success:
+            print(f"Successfully converted {mo_file}")
+            return True
+        
+        print(f"Conversion failed, retrying...")
+    
+    print(f"Failed to convert {mo_file} after {max_retries} attempts")
+    return False
+
+# Usage
+if not convert_with_retry("model.mo", "./output"):
+    sys.exit(1)
+----
+
+=== Example 9: Integration with pathlib
+
+[source,python]
+----
+from pathlib import Path
+from feelpp.mo2fmu import mo2fmu
+
+# Use pathlib for path manipulation
+project_dir = Path(__file__).parent
+models_dir = project_dir / "models"
+output_dir = project_dir / "fmus"
+
+# Ensure output directory exists
+output_dir.mkdir(exist_ok=True)
+
+# Convert all .mo files in models directory
+for mo_file in models_dir.glob("*.mo"):
+    print(f"Converting {mo_file.name}...")
+    success = mo2fmu(
+        mo=str(mo_file),
+        outdir=str(output_dir),
+        verbose=True
+    )
+    if not success:
+        print(f"Warning: Failed to convert {mo_file.name}")
+----
+
+=== Example 10: CI/CD Pipeline Integration
+
+[source,python]
+----
+#!/usr/bin/env python3
+"""
+CI/CD script for automated FMU generation.
+"""
+import sys
+import os
+from pathlib import Path
+from feelpp.mo2fmu import mo2fmu
+
+def main():
+    # Configuration from environment
+    models_to_build = os.getenv("MODELS", "model.mo").split(",")
+    output_dir = os.getenv("OUTPUT_DIR", "./dist/fmus")
+    fmi_type = os.getenv("FMI_TYPE", "all")
+    
+    # Create output directory
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    
+    # Build all models
+    failed = []
+    for model in models_to_build:
+        model = model.strip()
+        print(f"\n{'='*60}")
+        print(f"Building FMU: {model}")
+        print(f"{'='*60}")
+        
+        success = mo2fmu(
+            mo=model,
+            outdir=output_dir,
+            type=fmi_type,
+            verbose=True,
+            force=True
+        )
+        
+        if not success:
+            failed.append(model)
+    
+    # Report results
+    print(f"\n{'='*60}")
+    print("Build Summary")
+    print(f"{'='*60}")
+    print(f"Total models: {len(models_to_build)}")
+    print(f"Successful: {len(models_to_build) - len(failed)}")
+    print(f"Failed: {len(failed)}")
+    
+    if failed:
+        print("\nFailed models:")
+        for model in failed:
+            print(f"  - {model}")
+        sys.exit(1)
+    
+    print("\nAll models built successfully!")
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
+----
+
+== Best Practices
+
+=== 1. Use Environment Variables for Configuration
+
+[source,python]
+----
+import os
+
+DYMOLA_ROOT = os.getenv("DYMOLA_ROOT", "/opt/dymola-2025xRefresh1-x86_64/")
+DYMOLA_EXEC = os.getenv("DYMOLA_EXECUTABLE", "/usr/local/bin/dymola")
+DYMOLA_WHL = os.getenv("DYMOLA_WHL", "Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl")
+----
+
+=== 2. Always Check Return Values
+
+[source,python]
+----
+if not mo2fmu("model.mo", "./output"):
+    # Handle failure
+    sys.exit(1)
+----
+
+=== 3. Use Verbose Mode During Development
+
+[source,python]
+----
+# Development
+mo2fmu("model.mo", "./output", verbose=True)
+
+# Production
+mo2fmu("model.mo", "./output", verbose=False)
+----
+
+=== 4. Create Output Directories
+
+[source,python]
+----
+from pathlib import Path
+
+output_dir = Path("./output")
+output_dir.mkdir(parents=True, exist_ok=True)
+
+mo2fmu("model.mo", str(output_dir))
+----
+
+== Next Steps
+
+* See xref:examples.adoc[more examples]
+* Learn about xref:configuration.adoc[configuration options]
+* Check xref:usage-cli.adoc[CLI usage] for comparison

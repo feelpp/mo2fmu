@@ -4,8 +4,32 @@
 :!numbered:
 
 [.lead]
-{project_name} is a GitHub repository providing a converter between modelica language and FMU.
+{project_name} is a powerful tool that converts Modelica models to Functional Mock-up Units (FMUs) using Dymola. It provides both a command-line interface and a Python API for seamless integration into your workflows.
 
-Coding:: xref:overview.adoc[{feelpp} {cpp} and {python}] codes are available to help you get starting with using and coding with {feelpp}.
+== What is mo2fmu?
 
-Documenting:: The xref:overview.adoc[documentation] is written using the https://docs.asciidoc.org[Asciidoc plain text format] and https://docs.antora.org[Antora] to produce the documentation website. It is here to help you start with {project_name} documentation.
+mo2fmu simplifies the process of converting Modelica simulation models into standardized FMU format, which can be used across different simulation platforms and tools that support the Functional Mock-up Interface (FMI) standard.
+
+== Key Features
+
+* *Command-Line Interface*: Quick and easy conversion via terminal commands
+* *Python API*: Programmatic access for automation and integration
+* *Flexible Configuration*: Support for custom Dymola settings and FMI options
+* *Multiple FMI Types*: Generate Co-Simulation (CS), Model Exchange (ME), or both
+* *Package Management*: Load additional Modelica packages during conversion
+* *Optimization*: Built-in compiler optimizations for better performance
+* *64-bit Support*: Modern 64-bit FMU generation with code export
+
+== Getting Started
+
+Installation:: Get started quickly by xref:quickstart.adoc[installing mo2fmu] from PyPI or from source.
+
+Usage:: Learn how to use mo2fmu through xref:usage-cli.adoc[command-line] or xref:usage-python.adoc[Python API].
+
+Configuration:: Configure xref:configuration.adoc[Dymola paths and settings] for your environment.
+
+Examples:: Explore xref:examples.adoc[real-world examples] to see mo2fmu in action.
+
+== Documentation
+
+The documentation is written using the https://docs.asciidoc.org[Asciidoc plain text format] and https://docs.antora.org[Antora] to produce this website.
