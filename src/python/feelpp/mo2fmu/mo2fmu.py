@@ -107,6 +107,13 @@ def mo2fmu(
         if not Path(outdir).is_dir():
             Path(outdir).mkdir(parents=True, exist_ok=True)
 
+        # Set DYMOLA_LINGER_TIME to 0 for immediate license release
+        # This prevents license tokens from being held for 10 minutes after use
+        if "DYMOLA_LINGER_TIME" not in os.environ:
+            os.environ["DYMOLA_LINGER_TIME"] = "0"
+            if verbose:
+                logger.info("Set DYMOLA_LINGER_TIME=0 for immediate license release")
+
         # Instantiate Dymola interface
         dymola_interface = DymolaInterface(dymolapath=dymolapath, showwindow=False)
 
