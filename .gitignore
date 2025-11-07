@@ -21,6 +21,8 @@ node_modules/
 .env
 .venv/
 .venv-mo2fmu/
+public/
+cache/
 
 # Test artifacts and FMU outputs
 *.fmu
