@@ -52,7 +52,7 @@ class DymolaConfig:
     additional_commands: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_env(cls) -> "DymolaConfig":
+    def from_env(cls) -> DymolaConfig:
         """Create configuration from environment variables."""
         return cls(
             root=os.getenv("DYMOLA_ROOT", cls.root),
@@ -247,8 +247,8 @@ class DymolaCompiler(FMUCompiler):
 
         dymola = None
         try:
-            # Initialize Dymola
-            dymola = self._dymola_interface(
+            # Initialize Dymola (interface is guaranteed non-None after is_available check)
+            dymola = self._dymola_interface(  # type: ignore[misc]
                 dymolapath=self._config.executable, showwindow=False
             )
 
@@ -351,7 +351,8 @@ class DymolaCompiler(FMUCompiler):
 
         dymola = None
         try:
-            dymola = self._dymola_interface(
+            # Interface is guaranteed non-None after is_available check
+            dymola = self._dymola_interface(  # type: ignore[misc]
                 dymolapath=self._config.executable, showwindow=False
             )
 
@@ -364,7 +365,7 @@ class DymolaCompiler(FMUCompiler):
             dymola.openModel(str(model.path), changeDirectory=False)
 
             # Check the model
-            return dymola.checkModel(model.fully_qualified_name)
+            return bool(dymola.checkModel(model.fully_qualified_name))
 
         except Exception:
             return False
@@ -392,7 +393,8 @@ class DymolaCompiler(FMUCompiler):
 
         dymola = None
         try:
-            dymola = self._dymola_interface(
+            # Interface is guaranteed non-None after is_available check
+            dymola = self._dymola_interface(  # type: ignore[misc]
                 dymolapath=self._config.executable, showwindow=False
             )
 
@@ -404,7 +406,7 @@ class DymolaCompiler(FMUCompiler):
             if simulate:
                 # Get model name from FMU
                 fmu_model = f"{fmu_path.stem}_fmu"
-                return dymola.checkModel(problem=fmu_model, simulate=True)
+                return bool(dymola.checkModel(problem=fmu_model, simulate=True))
 
             return True
 

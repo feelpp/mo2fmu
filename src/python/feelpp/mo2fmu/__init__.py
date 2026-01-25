@@ -36,26 +36,21 @@ from importlib.metadata import version as _get_version
 # Single source of truth: version comes from pyproject.toml
 __version__ = _get_version("feelpp-mo2fmu")
 __all__ = [
-    # Primary API (camelCase)
-    "compileFmu",
-    "checkCompilers",
-    "getCompiler",
-    # CLI
-    "mo2fmuCLI",
-    # Compiler classes
-    "DymolaCompiler",
-    "DymolaConfig",
-    "OpenModelicaCompiler",
-    "OpenModelicaConfig",
-    # Data classes
     "CompilationConfig",
     "CompilationResult",
-    "ModelicaModel",
+    "DymolaCompiler",
+    "DymolaConfig",
     "FMUCompiler",
-    # Legacy API (deprecated, for backward compatibility)
-    "mo2fmu",
-    "mo2fmu_new",
+    "ModelicaModel",
+    "OpenModelicaCompiler",
+    "OpenModelicaConfig",
+    "checkCompilers",
+    "compileFmu",
+    "getCompiler",
     "get_compiler",
+    "mo2fmu",
+    "mo2fmuCLI",
+    "mo2fmu_new",
 ]
 
 from feelpp.mo2fmu.compilers.base import (
@@ -65,15 +60,18 @@ from feelpp.mo2fmu.compilers.base import (
     ModelicaModel,
 )
 from feelpp.mo2fmu.compilers.dymola import DymolaCompiler, DymolaConfig
-from feelpp.mo2fmu.compilers.openmodelica import OpenModelicaCompiler, OpenModelicaConfig
+from feelpp.mo2fmu.compilers.openmodelica import (
+    OpenModelicaCompiler,
+    OpenModelicaConfig,
+)
 from feelpp.mo2fmu.mo2fmu import (
     # Primary API
     checkCompilers,
     compileFmu,
-    getCompiler,
-    mo2fmuCLI,
     # Legacy API (deprecated)
     get_compiler,
+    getCompiler,
     mo2fmu,
     mo2fmu_new,
+    mo2fmuCLI,
 )

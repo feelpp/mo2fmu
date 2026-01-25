@@ -13,6 +13,7 @@ The OMPython package provides Python bindings:
 
 from __future__ import annotations
 
+import contextlib
 import os
 import shutil
 import subprocess
@@ -59,7 +60,7 @@ class OpenModelicaConfig:
     command_line_options: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_env(cls) -> "OpenModelicaConfig":
+    def from_env(cls) -> OpenModelicaConfig:
         """Create configuration from environment variables."""
         return cls(
             omc_path=os.getenv("OPENMODELICA_HOME"),
@@ -109,23 +110,22 @@ class OpenModelicaCompiler(FMUCompiler):
         try:
             result = subprocess.run(
                 [omc_cmd, "--version"],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=10,
             )
             self._omc_cli_available = result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        except (subprocess.TimeoutExpired, OSError):
             self._omc_cli_available = False
 
         # Check OMPython (requires omc to be available)
         # OMPython is a Python interface to communicate with omc, so omc must be installed
-        try:
-            from OMPython import OMCSessionZMQ
+        import importlib.util
 
-            # OMPython package is installed, but it needs omc to work
-            self._ompython_available = self._omc_cli_available
-        except ImportError:
-            self._ompython_available = False
+        ompython_spec = importlib.util.find_spec("OMPython")
+        # OMPython package is installed, but it needs omc to work
+        self._ompython_available = ompython_spec is not None and self._omc_cli_available
 
     def _get_omc_command(self) -> str:
         """Get the omc command path."""
@@ -156,6 +156,7 @@ class OpenModelicaCompiler(FMUCompiler):
         try:
             result = subprocess.run(
                 [omc_cmd, "--version"],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=10,
@@ -169,7 +170,7 @@ class OpenModelicaCompiler(FMUCompiler):
                         if part.startswith("v") or part[0].isdigit():
                             return part.lstrip("v")
                 return version_line
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        except (subprocess.TimeoutExpired, OSError):
             pass
         return None
 
@@ -248,7 +249,7 @@ class OpenModelicaCompiler(FMUCompiler):
                     if pkg_path.suffix == ".mo":
                         result = omc.sendExpression(f'loadFile("{pkg_path.as_posix()}")')
                     else:
-                        result = omc.sendExpression(f'loadModel({package})')
+                        result = omc.sendExpression(f"loadModel({package})")
 
                     if not result:
                         error = omc.sendExpression("getErrorString()")
@@ -357,10 +358,8 @@ class OpenModelicaCompiler(FMUCompiler):
 
         finally:
             if omc is not None:
-                try:
+                with contextlib.suppress(Exception):
                     omc.sendExpression("quit()")
-                except Exception:
-                    pass
             os.chdir(original_cwd)
 
     def _compile_with_cli(
@@ -419,6 +418,7 @@ class OpenModelicaCompiler(FMUCompiler):
             try:
                 result = subprocess.run(
                     [omc_cmd, str(script_path)],
+                    check=False,
                     capture_output=True,
                     text=True,
                     cwd=str(temp_path),
@@ -511,13 +511,12 @@ class OpenModelicaCompiler(FMUCompiler):
         # Choose compilation method
         if self._config.ompython_session and self._ompython_available:
             return self._compile_with_ompython(model, output_dir, config, logger)
-        elif self._omc_cli_available:
+        if self._omc_cli_available:
             return self._compile_with_cli(model, output_dir, config, logger)
-        else:
-            return CompilationResult(
-                success=False,
-                error_message="Neither OMPython nor omc CLI is available",
-            )
+        return CompilationResult(
+            success=False,
+            error_message="Neither OMPython nor omc CLI is available",
+        )
 
     def check_model(self, model: ModelicaModel, packages: Optional[list[str]] = None) -> bool:
         """Validate a Modelica model using OpenModelica.
@@ -534,7 +533,7 @@ class OpenModelicaCompiler(FMUCompiler):
 
         if self._ompython_available:
             return self._check_model_ompython(model, packages)
-        elif self._omc_cli_available:
+        if self._omc_cli_available:
             return self._check_model_cli(model, packages)
         return False
 
@@ -569,14 +568,10 @@ class OpenModelicaCompiler(FMUCompiler):
 
         finally:
             if omc is not None:
-                try:
+                with contextlib.suppress(Exception):
                     omc.sendExpression("quit()")
-                except Exception:
-                    pass
 
-    def _check_model_cli(
-        self, model: ModelicaModel, packages: Optional[list[str]] = None
-    ) -> bool:
+    def _check_model_cli(self, model: ModelicaModel, packages: Optional[list[str]] = None) -> bool:
         """Check model using omc CLI."""
         omc_cmd = self._get_omc_command()
 
@@ -606,11 +601,12 @@ class OpenModelicaCompiler(FMUCompiler):
             try:
                 result = subprocess.run(
                     [omc_cmd, str(script_path)],
+                    check=False,
                     capture_output=True,
                     text=True,
                     cwd=str(temp_path),
                     timeout=60,
                 )
                 return result.returncode == 0 and "Error" not in result.stdout
-            except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+            except (subprocess.TimeoutExpired, OSError):
                 return False

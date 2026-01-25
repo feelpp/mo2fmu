@@ -20,10 +20,10 @@ from feelpp.mo2fmu.compilers.dymola import DymolaCompiler
 from feelpp.mo2fmu.compilers.openmodelica import OpenModelicaCompiler
 
 __all__ = [
-    "FMUCompiler",
     "CompilationConfig",
     "CompilationResult",
-    "ModelicaModel",
     "DymolaCompiler",
+    "FMUCompiler",
+    "ModelicaModel",
     "OpenModelicaCompiler",
 ]

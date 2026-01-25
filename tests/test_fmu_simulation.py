@@ -13,7 +13,6 @@ from pathlib import Path
 import pytest
 
 from feelpp.mo2fmu import compileFmu
-from feelpp.mo2fmu.compilers.base import CompilationResult
 from feelpp.mo2fmu.compilers.dymola import DymolaConfig
 
 
@@ -59,9 +58,7 @@ def _get_dymola_config() -> DymolaConfig:
 class TestFmpySimulation:
     """Tests for FMU simulation using FMPy with CVODE solver."""
 
-    def test_simulate_cosimulation_fmu(
-        self, simpleOdeModel: Path, tmp_path: Path
-    ) -> None:
+    def test_simulate_cosimulation_fmu(self, simpleOdeModel: Path, tmp_path: Path) -> None:
         """Test simulating a Co-Simulation FMU with FMPy."""
         from fmpy import simulate_fmu
 
@@ -101,9 +98,7 @@ class TestFmpySimulation:
         assert y_values[0] > 0.9  # Initial value close to 1
         assert y_values[-1] < y_values[0]  # Decayed
 
-    def test_simulate_model_exchange_fmu(
-        self, simpleOdeModel: Path, tmp_path: Path
-    ) -> None:
+    def test_simulate_model_exchange_fmu(self, simpleOdeModel: Path, tmp_path: Path) -> None:
         """Test simulating a Model Exchange FMU with FMPy using CVODE solver."""
         from fmpy import simulate_fmu
 
@@ -141,7 +136,6 @@ class TestFmpySimulation:
 
         # Check that the solution decays correctly
         y_values = sim_result["y"]
-        time_values = sim_result["time"]
 
         # Initial value should be close to 1
         assert abs(y_values[0] - 1.0) < 0.01
@@ -192,12 +186,10 @@ class TestFmpySimulation:
         y_final = sim_result["y"][-1]
         assert abs(y_final) < 0.1  # Should be close to 0
 
-    def test_compare_cs_and_me_results(
-        self, simpleOdeModel: Path, tmp_path: Path
-    ) -> None:
+    def test_compare_cs_and_me_results(self, simpleOdeModel: Path, tmp_path: Path) -> None:
         """Test that Co-Simulation and Model Exchange produce similar results."""
-        from fmpy import simulate_fmu
         import numpy as np
+        from fmpy import simulate_fmu
 
         # Compile Co-Simulation FMU
         outdir_cs = tmp_path / "output_cs"
@@ -257,9 +249,7 @@ class TestFmpySimulation:
 class TestFmpyFmi3Simulation:
     """Tests for FMI 3.0 FMU simulation using FMPy."""
 
-    def test_simulate_fmi3_model_exchange(
-        self, simpleOdeModel: Path, tmp_path: Path
-    ) -> None:
+    def test_simulate_fmi3_model_exchange(self, simpleOdeModel: Path, tmp_path: Path) -> None:
         """Test simulating an FMI 3.0 Model Exchange FMU."""
         from fmpy import simulate_fmu
 
@@ -299,9 +289,7 @@ class TestFmpyFmi3Simulation:
             # FMPy might not fully support FMI 3.0 yet
             pytest.skip(f"FMPy FMI 3.0 simulation failed: {e}")
 
-    def test_simulate_fmi3_cosimulation(
-        self, simpleOdeModel: Path, tmp_path: Path
-    ) -> None:
+    def test_simulate_fmi3_cosimulation(self, simpleOdeModel: Path, tmp_path: Path) -> None:
         """Test simulating an FMI 3.0 Co-Simulation FMU."""
         from fmpy import simulate_fmu
 
@@ -422,9 +410,7 @@ class TestBouncingBallSimulation:
     - Input variables (wind_force)
     """
 
-    def test_compile_bouncing_ball_fmi2(
-        self, bouncingBallModel: Path, tmp_path: Path
-    ) -> None:
+    def test_compile_bouncing_ball_fmi2(self, bouncingBallModel: Path, tmp_path: Path) -> None:
         """Test compiling bouncing ball to FMI 2.0."""
         outdir = tmp_path / "output_bb_fmi2"
         result = compileFmu(
@@ -536,9 +522,7 @@ class TestBouncingBallSimulation:
             # Should detect at least some bounces
             assert max(bounce_counts) >= 1, "No bounces detected in ME simulation"
 
-    def test_bouncing_ball_bounce_count(
-        self, bouncingBallModel: Path, tmp_path: Path
-    ) -> None:
+    def test_bouncing_ball_bounce_count(self, bouncingBallModel: Path, tmp_path: Path) -> None:
         """Test that bounce counter increments correctly."""
         from fmpy import simulate_fmu
 
@@ -619,9 +603,7 @@ class TestBouncingBallSimulation:
         except Exception as e:
             pytest.skip(f"FMPy FMI 3.0 event simulation failed: {e}")
 
-    def test_bouncing_ball_fmi3_cosimulation(
-        self, bouncingBallModel: Path, tmp_path: Path
-    ) -> None:
+    def test_bouncing_ball_fmi3_cosimulation(self, bouncingBallModel: Path, tmp_path: Path) -> None:
         """Test bouncing ball with FMI 3.0 Co-Simulation."""
         from fmpy import simulate_fmu
 
@@ -658,9 +640,7 @@ class TestBouncingBallSimulation:
         except Exception as e:
             pytest.skip(f"FMPy FMI 3.0 Co-Simulation failed: {e}")
 
-    def test_bouncing_ball_with_wind_input(
-        self, bouncingBallModel: Path, tmp_path: Path
-    ) -> None:
+    def test_bouncing_ball_with_wind_input(self, bouncingBallModel: Path, tmp_path: Path) -> None:
         """Test bouncing ball with wind_force input variable."""
         from fmpy import read_model_description
 

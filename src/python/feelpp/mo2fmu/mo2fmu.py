@@ -9,7 +9,7 @@ from __future__ import annotations
 import warnings
 from importlib.metadata import version as get_version
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal, Optional
 
 import click
 
@@ -23,7 +23,10 @@ from feelpp.mo2fmu.compilers.base import (
     ModelicaModel,
 )
 from feelpp.mo2fmu.compilers.dymola import DymolaCompiler, DymolaConfig
-from feelpp.mo2fmu.compilers.openmodelica import OpenModelicaCompiler, OpenModelicaConfig
+from feelpp.mo2fmu.compilers.openmodelica import (
+    OpenModelicaCompiler,
+    OpenModelicaConfig,
+)
 
 # Type alias for backend selection
 Backend = Literal["dymola", "openmodelica", "auto"]
@@ -37,7 +40,7 @@ Backend = Literal["dymola", "openmodelica", "auto"]
 def checkCompilers(
     dymolaConfig: Optional[DymolaConfig] = None,
     openModelicaConfig: Optional[OpenModelicaConfig] = None,
-) -> dict:
+) -> dict[str, dict[str, object]]:
     """Check availability and FMI version support for all compilers.
 
     Args:
@@ -47,7 +50,7 @@ def checkCompilers(
     Returns:
         Dictionary with compiler availability and FMI support information
     """
-    results = {
+    results: dict[str, dict[str, object]] = {
         "dymola": {
             "available": False,
             "version": None,
@@ -64,43 +67,39 @@ def checkCompilers(
     dymola = DymolaCompiler(dymolaConfig)
     results["dymola"]["available"] = dymola.is_available
     if dymola.is_available:
-        results["dymola"]["version"] = dymola.get_version()
+        dymolaVersion = dymola.get_version()
+        results["dymola"]["version"] = dymolaVersion
         # Dymola 2024+ supports FMI 3.0, earlier versions support FMI 1.0 and 2.0
-        versionStr = results["dymola"]["version"]
-        if versionStr:
+        fmiSupport: list[str] = ["1", "2"]
+        if dymolaVersion:
             try:
                 # Version format: "2025.1" or "2024.1"
-                majorVersion = int(versionStr.split(".")[0])
-                results["dymola"]["fmiSupport"] = ["1", "2"]
+                majorVersion = int(dymolaVersion.split(".")[0])
                 if majorVersion >= 2024:
-                    results["dymola"]["fmiSupport"].append("3")
+                    fmiSupport.append("3")
             except (ValueError, IndexError):
-                # Can't parse version, assume FMI 2.0 support
-                results["dymola"]["fmiSupport"] = ["1", "2"]
-        else:
-            results["dymola"]["fmiSupport"] = ["1", "2"]
+                pass  # Keep default FMI 1.0 and 2.0 support
+        results["dymola"]["fmiSupport"] = fmiSupport
 
     # Check OpenModelica
     omc = OpenModelicaCompiler(openModelicaConfig)
     results["openmodelica"]["available"] = omc.is_available
     if omc.is_available:
-        results["openmodelica"]["version"] = omc.get_version()
+        omcVersion = omc.get_version()
+        results["openmodelica"]["version"] = omcVersion
         # OpenModelica 1.21+ supports FMI 3.0, earlier versions support FMI 1.0 and 2.0
-        versionStr = results["openmodelica"]["version"]
-        if versionStr:
+        fmiSupport = ["1", "2"]
+        if omcVersion:
             try:
                 # Version format: "1.22.0" or "1.21.0"
-                parts = versionStr.split(".")
+                parts = omcVersion.split(".")
                 major = int(parts[0])
                 minor = int(parts[1]) if len(parts) > 1 else 0
-                results["openmodelica"]["fmiSupport"] = ["1", "2"]
                 if major > 1 or (major == 1 and minor >= 21):
-                    results["openmodelica"]["fmiSupport"].append("3")
+                    fmiSupport.append("3")
             except (ValueError, IndexError):
-                # Can't parse version, assume FMI 2.0 support
-                results["openmodelica"]["fmiSupport"] = ["1", "2"]
-        else:
-            results["openmodelica"]["fmiSupport"] = ["1", "2"]
+                pass  # Keep default FMI 1.0 and 2.0 support
+        results["openmodelica"]["fmiSupport"] = fmiSupport
 
     return results
 
@@ -124,18 +123,18 @@ def getCompiler(
         RuntimeError: If no suitable compiler is available
     """
     if backend == "dymola":
-        compiler = DymolaCompiler(dymolaConfig)
-        if not compiler.is_available:
-            raise RuntimeError("Dymola is not available. Check installation and configuration.")
-        return compiler
+        dymolaCompiler = DymolaCompiler(dymolaConfig)
+        if not dymolaCompiler.is_available:
+            msg = "Dymola is not available. Check installation and configuration."
+            raise RuntimeError(msg)
+        return dymolaCompiler
 
     if backend == "openmodelica":
-        compiler = OpenModelicaCompiler(openModelicaConfig)
-        if not compiler.is_available:
-            raise RuntimeError(
-                "OpenModelica is not available. Install omc and/or OMPython."
-            )
-        return compiler
+        omcCompiler = OpenModelicaCompiler(openModelicaConfig)
+        if not omcCompiler.is_available:
+            msg = "OpenModelica is not available. Install omc and/or OMPython."
+            raise RuntimeError(msg)
+        return omcCompiler
 
     # Auto-detection: prefer Dymola if available, fall back to OpenModelica
     dymola = DymolaCompiler(dymolaConfig)
@@ -146,14 +145,13 @@ def getCompiler(
     if omc.is_available:
         return omc
 
-    raise RuntimeError(
-        "No Modelica compiler available. Install Dymola or OpenModelica."
-    )
+    msg = "No Modelica compiler available. Install Dymola or OpenModelica."
+    raise RuntimeError(msg)
 
 
 def compileFmu(
-    mo: Union[str, Path],
-    outdir: Union[str, Path],
+    mo: str | Path,
+    outdir: str | Path,
     backend: Backend = "auto",
     fmuModelName: Optional[str] = None,
     load: Optional[list[str]] = None,
@@ -238,8 +236,8 @@ def get_compiler(
 
 
 def mo2fmu_new(
-    mo: Union[str, Path],
-    outdir: Union[str, Path],
+    mo: str | Path,
+    outdir: str | Path,
     backend: Backend = "auto",
     fmumodelname: Optional[str] = None,
     load: Optional[list[str]] = None,
@@ -333,7 +331,7 @@ def mo2fmu(
     result = compileFmu(
         mo=mo,
         outdir=outdir,
-        backend=backend,  # type: ignore
+        backend=backend,  # type: ignore[arg-type]
         fmuModelName=fmumodelname,
         load=list(load) if load else None,
         flags=list(flags) if flags else None,
@@ -361,7 +359,6 @@ def mo2fmuCLI(ctx: click.Context, version: bool) -> None:
     Use 'mo2fmu compile' to generate FMUs or 'mo2fmu check' to verify compilers.
 
     Examples:
-
         mo2fmu compile model.mo ./output
 
         mo2fmu compile -v --force model.mo ./output
@@ -466,7 +463,6 @@ def compileCmd(
     OUTDIR: Output directory for the generated FMU
 
     Examples:
-
         mo2fmu compile model.mo ./output
 
         mo2fmu compile -v --force --fmi-version 3 model.mo ./output
@@ -486,7 +482,7 @@ def compileCmd(
         result = compileFmu(
             mo=mo,
             outdir=outdir,
-            backend=backend,  # type: ignore
+            backend=backend,  # type: ignore[arg-type]
             fmuModelName=name,
             load=list(load) if load else None,
             flags=list(flags) if flags else None,
@@ -503,11 +499,11 @@ def compileCmd(
             click.echo(f"Error: {result.error_message}", err=True)
             if result.log:
                 click.echo(f"Log:\n{result.log}", err=True)
-            raise SystemExit(1)
+            raise SystemExit(1) from None
 
     except RuntimeError as e:
         click.echo(f"Error: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @mo2fmuCLI.command("check")
@@ -545,7 +541,6 @@ def checkCmd(
     and reports their versions and supported FMI versions.
 
     Examples:
-
         mo2fmu check
 
         mo2fmu check --json
@@ -562,6 +557,7 @@ def checkCmd(
 
     if asJson:
         import json
+
         click.echo(json.dumps(results, indent=2))
         return
 
@@ -574,8 +570,10 @@ def checkCmd(
     if results["dymola"]["available"]:
         click.echo("  Status:      Available")
         click.echo(f"  Version:     {results['dymola']['version'] or 'Unknown'}")
-        fmiVersions = ", ".join(results["dymola"]["fmiSupport"])
-        click.echo(f"  FMI Support: {fmiVersions}")
+        dymolaFmiSupport = results["dymola"]["fmiSupport"]
+        if isinstance(dymolaFmiSupport, list):
+            fmiVersions = ", ".join(dymolaFmiSupport)
+            click.echo(f"  FMI Support: {fmiVersions}")
     else:
         click.echo("  Status:      Not available")
         click.echo("  Hint:        Set DYMOLA_ROOT environment variable or use --dymola option")
@@ -585,8 +583,10 @@ def checkCmd(
     if results["openmodelica"]["available"]:
         click.echo("  Status:      Available")
         click.echo(f"  Version:     {results['openmodelica']['version'] or 'Unknown'}")
-        fmiVersions = ", ".join(results["openmodelica"]["fmiSupport"])
-        click.echo(f"  FMI Support: {fmiVersions}")
+        omcFmiSupport = results["openmodelica"]["fmiSupport"]
+        if isinstance(omcFmiSupport, list):
+            fmiVersions = ", ".join(omcFmiSupport)
+            click.echo(f"  FMI Support: {fmiVersions}")
     else:
         click.echo("  Status:      Not available")
         click.echo("  Hint:        Install OpenModelica and OMPython (pip install OMPython)")
@@ -598,7 +598,7 @@ def checkCmd(
     if availableCount == 0:
         click.echo("Warning: No compilers available!")
         raise SystemExit(1)
-    elif availableCount == 1:
+    if availableCount == 1:
         compilerName = "Dymola" if results["dymola"]["available"] else "OpenModelica"
         click.echo(f"Summary: {compilerName} is available for FMU generation.")
     else:
@@ -622,7 +622,9 @@ def checkCmd(
 @click.option("--backend", default="auto", type=click.Choice(["dymola", "openmodelica", "auto"]))
 @click.option("--dymola", default="/opt/dymola-2025xRefresh1-x86_64/", type=click.Path())
 @click.option("--dymolapath", default="/usr/local/bin/dymola", type=click.Path())
-@click.option("--dymolawhl", default="Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl")
+@click.option(
+    "--dymolawhl", default="Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl"
+)
 @click.option("-v", "--verbose", is_flag=True)
 @click.option("-f", "--force", is_flag=True)
 def mo2fmuLegacyCLI(
@@ -655,7 +657,9 @@ def mo2fmuLegacyCLI(
     if check:
         # Invoke check command
         ctx = click.Context(checkCmd)
-        ctx.invoke(checkCmd, dymola=dymola, dymola_exec=dymolapath, dymola_whl=dymolawhl, asJson=False)
+        ctx.invoke(
+            checkCmd, dymola=dymola, dymola_exec=dymolapath, dymola_whl=dymolawhl, asJson=False
+        )
         return
 
     if not mo or not outdir:

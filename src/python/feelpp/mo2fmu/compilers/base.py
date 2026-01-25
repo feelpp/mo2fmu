@@ -23,7 +23,7 @@ class FMIType(Enum):
     CO_SIMULATION_SOLVER = "csSolver"
 
     @classmethod
-    def from_string(cls, value: str) -> "FMIType":
+    def from_string(cls, value: str) -> FMIType:
         """Convert string to FMIType."""
         mapping = {
             "me": cls.MODEL_EXCHANGE,
@@ -32,7 +32,8 @@ class FMIType(Enum):
             "csSolver": cls.CO_SIMULATION_SOLVER,
         }
         if value not in mapping:
-            raise ValueError(f"Invalid FMI type: {value}. Valid options: {list(mapping.keys())}")
+            msg = f"Invalid FMI type: {value}. Valid options: {list(mapping.keys())}"
+            raise ValueError(msg)
         return mapping[value]
 
 
@@ -44,13 +45,12 @@ class FMIVersion(Enum):
     FMI_3_0 = "3"
 
     @classmethod
-    def from_string(cls, value: str) -> "FMIVersion":
+    def from_string(cls, value: str) -> FMIVersion:
         """Convert string to FMIVersion."""
         mapping = {"1": cls.FMI_1_0, "2": cls.FMI_2_0, "3": cls.FMI_3_0}
         if value not in mapping:
-            raise ValueError(
-                f"Invalid FMI version: {value}. Valid options: {list(mapping.keys())}"
-            )
+            msg = f"Invalid FMI version: {value}. Valid options: {list(mapping.keys())}"
+            raise ValueError(msg)
         return mapping[value]
 
 
@@ -96,7 +96,7 @@ class ModelicaModel:
             match = re.search(r"within\s+([\w.]+)\s*;", content)
             if match:
                 return match.group(1)
-        except (OSError, IOError):
+        except OSError:
             pass
         return None
 
@@ -137,7 +137,7 @@ class CompilationConfig:
         flags: Optional[tuple[str, ...]] = None,
         force: bool = False,
         verbose: bool = False,
-    ) -> "CompilationConfig":
+    ) -> CompilationConfig:
         """Create config from legacy mo2fmu parameters."""
         return cls(
             fmi_type=FMIType.from_string(type),

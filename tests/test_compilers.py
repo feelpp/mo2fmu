@@ -17,8 +17,10 @@ from feelpp.mo2fmu.compilers.base import (
     ModelicaModel,
 )
 from feelpp.mo2fmu.compilers.dymola import DymolaCompiler, DymolaConfig
-from feelpp.mo2fmu.compilers.openmodelica import OpenModelicaCompiler, OpenModelicaConfig
-
+from feelpp.mo2fmu.compilers.openmodelica import (
+    OpenModelicaCompiler,
+    OpenModelicaConfig,
+)
 
 # =============================================================================
 # Compiler Availability Checks
