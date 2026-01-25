@@ -65,7 +65,7 @@ dev = [
   "twine",
 ]
 lint = [
-  "black>=23.0",
+  "black>=26.0",
   "flake8>=6.0",
   "flake8-docstrings>=1.7",
   "flake8-bugbear>=23.0",

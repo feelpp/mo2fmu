@@ -78,14 +78,12 @@ class TestModelicaModel:
     def test_simple_model(self, tmp_path: Path) -> None:
         """Test creating a model from a simple .mo file."""
         mo_file = tmp_path / "simple.mo"
-        mo_file.write_text(
-            """model simple
+        mo_file.write_text("""model simple
   Real x;
 equation
   der(x) = -x;
 end simple;
-"""
-        )
+""")
 
         model = ModelicaModel(mo_file)
 
@@ -97,15 +95,13 @@ end simple;
     def test_model_with_package(self, tmp_path: Path) -> None:
         """Test creating a model with a 'within' statement."""
         mo_file = tmp_path / "test_model.mo"
-        mo_file.write_text(
-            """within MyPackage.SubPackage;
+        mo_file.write_text("""within MyPackage.SubPackage;
 model test_model
   Real x;
 equation
   der(x) = -x;
 end test_model;
-"""
-        )
+""")
 
         model = ModelicaModel(mo_file)
 
