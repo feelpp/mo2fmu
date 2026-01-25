@@ -1,17 +1,280 @@
-"""mo2fmu - Convert Modelica models to Functional Mock-up Units (FMUs)."""
+"""mo2fmu - Convert Modelica models to Functional Mock-up Units (FMUs).
+
+This module provides both a Python API and CLI for converting Modelica
+models to FMUs using either Dymola (commercial) or OpenModelica (open source).
+"""
 
 from __future__ import annotations
 
-import os
-import platform
-import shutil
-import sys
+import warnings
+from importlib.metadata import version as get_version
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional, Union
 
 import click
-import spdlog as spd
-from xvfbwrapper import Xvfb
+
+# Import compiler classes
+from feelpp.mo2fmu.compilers.base import (
+    CompilationConfig,
+    CompilationResult,
+    FMIType,
+    FMIVersion,
+    FMUCompiler,
+    ModelicaModel,
+)
+from feelpp.mo2fmu.compilers.dymola import DymolaCompiler, DymolaConfig
+from feelpp.mo2fmu.compilers.openmodelica import OpenModelicaCompiler, OpenModelicaConfig
+
+# Type alias for backend selection
+Backend = Literal["dymola", "openmodelica", "auto"]
+
+
+# =============================================================================
+# Public API Functions (camelCase)
+# =============================================================================
+
+
+def checkCompilers(
+    dymolaConfig: Optional[DymolaConfig] = None,
+    openModelicaConfig: Optional[OpenModelicaConfig] = None,
+) -> dict:
+    """Check availability and FMI version support for all compilers.
+
+    Args:
+        dymolaConfig: Configuration for Dymola compiler
+        openModelicaConfig: Configuration for OpenModelica compiler
+
+    Returns:
+        Dictionary with compiler availability and FMI support information
+    """
+    results = {
+        "dymola": {
+            "available": False,
+            "version": None,
+            "fmiSupport": [],
+        },
+        "openmodelica": {
+            "available": False,
+            "version": None,
+            "fmiSupport": [],
+        },
+    }
+
+    # Check Dymola
+    dymola = DymolaCompiler(dymolaConfig)
+    results["dymola"]["available"] = dymola.is_available
+    if dymola.is_available:
+        results["dymola"]["version"] = dymola.get_version()
+        # Dymola 2024+ supports FMI 3.0, earlier versions support FMI 1.0 and 2.0
+        versionStr = results["dymola"]["version"]
+        if versionStr:
+            try:
+                # Version format: "2025.1" or "2024.1"
+                majorVersion = int(versionStr.split(".")[0])
+                results["dymola"]["fmiSupport"] = ["1", "2"]
+                if majorVersion >= 2024:
+                    results["dymola"]["fmiSupport"].append("3")
+            except (ValueError, IndexError):
+                # Can't parse version, assume FMI 2.0 support
+                results["dymola"]["fmiSupport"] = ["1", "2"]
+        else:
+            results["dymola"]["fmiSupport"] = ["1", "2"]
+
+    # Check OpenModelica
+    omc = OpenModelicaCompiler(openModelicaConfig)
+    results["openmodelica"]["available"] = omc.is_available
+    if omc.is_available:
+        results["openmodelica"]["version"] = omc.get_version()
+        # OpenModelica 1.21+ supports FMI 3.0, earlier versions support FMI 1.0 and 2.0
+        versionStr = results["openmodelica"]["version"]
+        if versionStr:
+            try:
+                # Version format: "1.22.0" or "1.21.0"
+                parts = versionStr.split(".")
+                major = int(parts[0])
+                minor = int(parts[1]) if len(parts) > 1 else 0
+                results["openmodelica"]["fmiSupport"] = ["1", "2"]
+                if major > 1 or (major == 1 and minor >= 21):
+                    results["openmodelica"]["fmiSupport"].append("3")
+            except (ValueError, IndexError):
+                # Can't parse version, assume FMI 2.0 support
+                results["openmodelica"]["fmiSupport"] = ["1", "2"]
+        else:
+            results["openmodelica"]["fmiSupport"] = ["1", "2"]
+
+    return results
+
+
+def getCompiler(
+    backend: Backend = "auto",
+    dymolaConfig: Optional[DymolaConfig] = None,
+    openModelicaConfig: Optional[OpenModelicaConfig] = None,
+) -> FMUCompiler:
+    """Get an FMU compiler instance.
+
+    Args:
+        backend: Compiler backend to use ("dymola", "openmodelica", or "auto")
+        dymolaConfig: Configuration for Dymola compiler
+        openModelicaConfig: Configuration for OpenModelica compiler
+
+    Returns:
+        An FMUCompiler instance
+
+    Raises:
+        RuntimeError: If no suitable compiler is available
+    """
+    if backend == "dymola":
+        compiler = DymolaCompiler(dymolaConfig)
+        if not compiler.is_available:
+            raise RuntimeError("Dymola is not available. Check installation and configuration.")
+        return compiler
+
+    if backend == "openmodelica":
+        compiler = OpenModelicaCompiler(openModelicaConfig)
+        if not compiler.is_available:
+            raise RuntimeError(
+                "OpenModelica is not available. Install omc and/or OMPython."
+            )
+        return compiler
+
+    # Auto-detection: prefer Dymola if available, fall back to OpenModelica
+    dymola = DymolaCompiler(dymolaConfig)
+    if dymola.is_available:
+        return dymola
+
+    omc = OpenModelicaCompiler(openModelicaConfig)
+    if omc.is_available:
+        return omc
+
+    raise RuntimeError(
+        "No Modelica compiler available. Install Dymola or OpenModelica."
+    )
+
+
+def compileFmu(
+    mo: Union[str, Path],
+    outdir: Union[str, Path],
+    backend: Backend = "auto",
+    fmuModelName: Optional[str] = None,
+    load: Optional[list[str]] = None,
+    flags: Optional[list[str]] = None,
+    fmiType: str = "all",
+    fmiVersion: str = "2",
+    verbose: bool = False,
+    force: bool = False,
+    dymolaConfig: Optional[DymolaConfig] = None,
+    openModelicaConfig: Optional[OpenModelicaConfig] = None,
+) -> CompilationResult:
+    """Convert a Modelica model to FMU.
+
+    This is the primary API for FMU compilation.
+
+    Args:
+        mo: Path to the Modelica .mo file
+        outdir: Output directory for the generated FMU
+        backend: Compiler backend ("dymola", "openmodelica", or "auto")
+        fmuModelName: Custom name for the FMU (defaults to model name)
+        load: List of Modelica packages to load
+        flags: List of compiler-specific flags
+        fmiType: FMI type ("cs", "me", "all", or "csSolver")
+        fmiVersion: FMI version ("1", "2", or "3")
+        verbose: Enable verbose logging
+        force: Overwrite existing FMU if present
+        dymolaConfig: Dymola-specific configuration
+        openModelicaConfig: OpenModelica-specific configuration
+
+    Returns:
+        CompilationResult with success status and FMU path or error info
+
+    Example:
+        >>> result = compileFmu("model.mo", "./output", backend="auto")
+        >>> if result.success:
+        ...     print(f"FMU created at {result.fmu_path}")
+        ... else:
+        ...     print(f"Error: {result.error_message}")
+    """
+    # Get compiler
+    compiler = getCompiler(backend, dymolaConfig, openModelicaConfig)
+
+    # Create model representation
+    model = ModelicaModel(Path(mo))
+
+    # Create compilation config
+    config = CompilationConfig(
+        fmi_type=FMIType.from_string(fmiType),
+        fmi_version=FMIVersion.from_string(fmiVersion),
+        output_name=fmuModelName,
+        packages=load or [],
+        flags=flags or [],
+        force=force,
+        verbose=verbose,
+    )
+
+    # Compile
+    return compiler.compile(model, Path(outdir), config)
+
+
+# =============================================================================
+# Legacy API (deprecated, for backward compatibility)
+# =============================================================================
+
+
+def get_compiler(
+    backend: Backend = "auto",
+    dymola_config: Optional[DymolaConfig] = None,
+    openmodelica_config: Optional[OpenModelicaConfig] = None,
+) -> FMUCompiler:
+    """Get an FMU compiler instance.
+
+    .. deprecated::
+        Use :func:`getCompiler` instead.
+    """
+    warnings.warn(
+        "get_compiler() is deprecated, use getCompiler() instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return getCompiler(backend, dymola_config, openmodelica_config)
+
+
+def mo2fmu_new(
+    mo: Union[str, Path],
+    outdir: Union[str, Path],
+    backend: Backend = "auto",
+    fmumodelname: Optional[str] = None,
+    load: Optional[list[str]] = None,
+    flags: Optional[list[str]] = None,
+    fmi_type: str = "all",
+    fmi_version: str = "2",
+    verbose: bool = False,
+    force: bool = False,
+    dymola_config: Optional[DymolaConfig] = None,
+    openmodelica_config: Optional[OpenModelicaConfig] = None,
+) -> CompilationResult:
+    """Convert a Modelica model to FMU.
+
+    .. deprecated::
+        Use :func:`compileFmu` instead.
+    """
+    warnings.warn(
+        "mo2fmu_new() is deprecated, use compileFmu() instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return compileFmu(
+        mo=mo,
+        outdir=outdir,
+        backend=backend,
+        fmuModelName=fmumodelname,
+        load=load,
+        flags=flags,
+        fmiType=fmi_type,
+        fmiVersion=fmi_version,
+        verbose=verbose,
+        force=force,
+        dymolaConfig=dymola_config,
+        openModelicaConfig=openmodelica_config,
+    )
 
 
 def mo2fmu(
@@ -27,8 +290,13 @@ def mo2fmu(
     dymolawhl: str,
     verbose: bool,
     force: bool,
+    backend: str = "dymola",
 ) -> bool:
     """Convert a .mo file into a .fmu.
+
+    .. deprecated::
+        Use :func:`compileFmu` instead. This function is maintained for
+        backward compatibility only.
 
     Args:
         mo: Path to the Modelica .mo file to convert
@@ -43,253 +311,372 @@ def mo2fmu(
         dymolawhl: Path to Dymola wheel file (relative to dymola root)
         verbose: Enable verbose logging
         force: Force overwrite of existing FMU
+        backend: Compiler backend ("dymola" or "openmodelica")
 
     Returns:
         True if conversion was successful, False otherwise
-
-    Example:
-        >>> mo2fmu("model.mo", "./output", None, None, None, "cs", "2",
-        ...        "/opt/dymola", "/usr/local/bin/dymola", "dymola.whl", True, False)
     """
-    # Create logger with unique name based on file being processed
-    import uuid
+    warnings.warn(
+        "mo2fmu() is deprecated, use compileFmu() instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
-    logger_name = f"mo2fmu_{uuid.uuid4().hex[:8]}"
-    logger = spd.ConsoleLogger(logger_name, False, True, True)
-    has_dymola = False
+    # Build config for Dymola
+    dymolaConfig = DymolaConfig(
+        root=dymola_root,
+        executable=dymolapath,
+        wheel_path=dymolawhl,
+    )
 
-    # Prevent writing FMU into the same directory as cwd
-    if Path(outdir) == Path(os.getcwd()):
-        logger.error(f"the destination directory should be different from {os.getcwd()}")
-        return False
+    # Use the new unified API
+    result = compileFmu(
+        mo=mo,
+        outdir=outdir,
+        backend=backend,  # type: ignore
+        fmuModelName=fmumodelname,
+        load=list(load) if load else None,
+        flags=list(flags) if flags else None,
+        fmiType=type,
+        fmiVersion=version,
+        verbose=verbose,
+        force=force,
+        dymolaConfig=dymolaConfig,
+    )
 
-    # Attempt to load Dymola's Python interface
-    try:
-        sys.path.append(str(Path(dymola_root) / Path(dymolawhl)))
-        logger.info(f"add {Path(dymola_root) / Path(dymolawhl)} to sys path")
-        if not (Path(dymola_root) / Path(dymolawhl)).is_file():
-            logger.error(f"dymola whl {Path(dymola_root) / Path(dymolawhl)} does not exist")
-        import dymola  # noqa: F401
-        from dymola.dymola_exception import DymolaException
-        from dymola.dymola_interface import DymolaInterface
-
-        has_dymola = True
-        logger.info(f"dymola is available in {dymola_root}/{dymolawhl}")
-    except ImportError:
-        logger.info(f"dymola module is not available, has_dymola: {has_dymola}")
-    if not has_dymola:
-        logger.error("dymola is not available, mo2fmu failed")
-        return False
-
-    # Start a virtual framebuffer (for headless Dymola)
-    vdisplay = Xvfb()
-    vdisplay.start()
-
-    osString = platform.system()
-    isWindows = osString.startswith("Win")  # noqa: F841
-
-    dymola_interface = None
-    try:
-        # Determine the FMU model name (default: .mo file stem)
-        fmumodelname = Path(fmumodelname if fmumodelname else mo).stem
-        if verbose:
-            logger.info(f"convert {mo} to {fmumodelname}.fmu")
-
-        # If an FMU already exists in outdir
-        target_fmu = Path(outdir) / f"{fmumodelname}.fmu"
-        if target_fmu.is_file() and force:
-            logger.warn(f"{fmumodelname}.fmu exists in {outdir}, will overwrite it")
-        elif target_fmu.is_file():
-            logger.warn(f"{fmumodelname}.fmu exists in {outdir}; use `--force` to overwrite.")
-            return False
-
-        # Create outdir if it doesn't exist
-        if not Path(outdir).is_dir():
-            Path(outdir).mkdir(parents=True, exist_ok=True)
-
-        # Set DYMOLA_LINGER_TIME to 0 for immediate license release
-        # This prevents license tokens from being held for 10 minutes after use
-        if "DYMOLA_LINGER_TIME" not in os.environ:
-            os.environ["DYMOLA_LINGER_TIME"] = "0"
-            if verbose:
-                logger.info("Set DYMOLA_LINGER_TIME=0 for immediate license release")
-
-        # Instantiate Dymola interface
-        dymola_interface = DymolaInterface(dymolapath=dymolapath, showwindow=False)
-
-        # **1) Disable any 32-bit build first and force 64-bit-only compilation **
-        dymola_interface.ExecuteCommand("Advanced.CompileWith64=2;")
-        # **2) Enable code export so FMU contains sources or compiled binaries **
-        # and no longer requires a license to run
-        dymola_interface.ExecuteCommand("Advanced.EnableCodeExport=true;")
-        # **3) Turn on full compiler optimizations (instead of the default -O1)
-        dymola_interface.ExecuteCommand("Advanced.Define.GlobalOptimizations=2;")
-
-        # Compute the fully qualified model name (package + file stem)
-        packageName = ""
-        with open(mo) as f:
-            lines = f.readlines()
-        for line in lines:
-            if line.strip().startswith("within "):
-                packageName = line.split(" ")[1][:-2]
-        if packageName:
-            moModel = f"{packageName}.{Path(mo).stem}"
-        else:
-            moModel = Path(mo).stem
-
-        # Load any additional packages
-        if load:
-            for package in load:
-                if verbose:
-                    logger.info(f"load modelica package {package}")
-                dymola_interface.openModel(package, changeDirectory=False)
-
-        # Apply any Dymola flags
-        if flags:
-            for flag in flags:
-                if verbose:
-                    logger.info(f"Flag {flag}")
-                dymola_interface.ExecuteCommand(flag)
-
-        # Open the .mo file
-        dymola_interface.openModel(mo, changeDirectory=False)
-
-        # Ensure Dymola's working directory matches Python's cwd
-        cwd_posix = str(Path.cwd().as_posix())
-        dymola_interface.ExecuteCommand(f'cd("{cwd_posix}");')
-        logger.info(f"Dymola working directory = {cwd_posix}")
-
-        # Request FMU translation (now only 64-bit since 32-bit is disabled)
-        result = dymola_interface.translateModelFMU(
-            moModel, modelName=fmumodelname, fmiVersion="2", fmiType=type
-        )
-
-        if not result:
-            log = dymola_interface.getLastErrorLog()
-            licInfo = dymola_interface.DymolaLicenseInfo()
-            logger.error("translateModelFMU returned False. Dymola log:")
-            logger.error(log)
-            logger.error("Dymola License Information:")
-            logger.error(licInfo)
-            return False
-
-        # Verify that the FMU file actually appeared
-        expected_fmu = Path.cwd() / f"{fmumodelname}.fmu"
-        if not expected_fmu.is_file():
-            logger.error(f"Expected FMU '{expected_fmu.name}' not found in {Path.cwd()}")
-            logger.error(f"Directory listing (*.fmu): {list(Path.cwd().glob('*.fmu'))}")
-            return False
-
-        # If an old FMU exists in outdir and --force was given, remove it
-        if target_fmu.is_file() and force:
-            target_fmu.unlink()
-        elif target_fmu.is_file():
-            logger.warning(
-                f"{target_fmu.name} already exists in {outdir}; use --force to overwrite"
-            )
-            return False
-
-        # Move the FMU to the output directory
-        dest = shutil.move(str(expected_fmu), str(Path(outdir)))
-        logger.info(f"translateModelFMU {Path(mo).stem} → {dest}")
-
-        if verbose:
-            logger.info(f"{fmumodelname}.fmu successfully generated in {outdir}")
-
-        return True
-
-    except DymolaException as ex:
-        logger.error(str(ex))
-        return False
-
-    finally:
-        # Clean up: close Dymola and stop the virtual framebuffer
-        if dymola_interface is not None:
-            dymola_interface.close()
-        vdisplay.stop()
-        spd.drop("Logger")
+    return result.success
 
 
-@click.command()
-@click.argument("mo", type=str, nargs=1)
-@click.argument("outdir", type=click.Path(), nargs=1)
+# =============================================================================
+# CLI with Click Group
+# =============================================================================
+
+
+@click.group(invoke_without_command=True)
+@click.pass_context
+@click.option("-v", "--version", is_flag=True, help="Show version information.")
+def mo2fmuCLI(ctx: click.Context, version: bool) -> None:
+    """mo2fmu - Convert Modelica models to Functional Mock-up Units (FMUs).
+
+    Use 'mo2fmu compile' to generate FMUs or 'mo2fmu check' to verify compilers.
+
+    Examples:
+
+        mo2fmu compile model.mo ./output
+
+        mo2fmu compile -v --force model.mo ./output
+
+        mo2fmu check
+
+        mo2fmu check --dymola /opt/dymola-2025x
+    """
+    if version:
+        click.echo(f"mo2fmu version {get_version('feelpp-mo2fmu')}")
+        return
+
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+
+
+@mo2fmuCLI.command("compile")
+@click.argument("mo", type=click.Path(exists=True))
+@click.argument("outdir", type=click.Path())
 @click.option(
-    "--fmumodelname",
+    "--name",
     default=None,
     type=str,
-    help="change the model name of the FMU (default: .mo file stem)",
+    help="Custom name for the FMU (default: .mo file stem).",
 )
-@click.option("--load", default=None, multiple=True, help="load one or more Modelica packages.")
+@click.option(
+    "--load",
+    "-l",
+    default=None,
+    multiple=True,
+    help="Load one or more Modelica packages.",
+)
 @click.option(
     "--flags",
     default=None,
     multiple=True,
-    help="one or more Dymola flags for FMU translation.",
+    help="Compiler-specific flags for FMU translation.",
 )
 @click.option(
     "--type",
+    "-t",
+    "fmiType",
     default="all",
     type=click.Choice(["all", "cs", "me", "csSolver"]),
-    help="the FMI type: cs, me, all, or csSolver.",
+    help="FMI type: cs (Co-Simulation), me (Model Exchange), all, or csSolver.",
 )
-@click.option("--version", default="2", help="the FMI version.")
+@click.option(
+    "--fmi-version",
+    default="2",
+    type=click.Choice(["1", "2", "3"]),
+    help="FMI version. FMI 3.0 requires Dymola 2024+ or OpenModelica 1.21+.",
+)
+@click.option(
+    "--backend",
+    "-b",
+    default="auto",
+    type=click.Choice(["dymola", "openmodelica", "auto"]),
+    help="Modelica compiler backend (default: auto-detect).",
+)
 @click.option(
     "--dymola",
     default="/opt/dymola-2025xRefresh1-x86_64/",
     type=click.Path(),
-    help="path to Dymola root.",
+    envvar="DYMOLA_ROOT",
+    help="Path to Dymola root directory.",
 )
 @click.option(
-    "--dymolapath",
+    "--dymola-exec",
     default="/usr/local/bin/dymola",
     type=click.Path(),
-    help="path to Dymola executable.",
+    envvar="DYMOLA_EXECUTABLE",
+    help="Path to Dymola executable.",
 )
 @click.option(
-    "--dymolawhl",
+    "--dymola-whl",
     default="Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl",
     type=click.Path(),
-    help="path to Dymola whl file, relative to Dymola root.",
+    envvar="DYMOLA_WHL",
+    help="Path to Dymola wheel file (relative to Dymola root).",
 )
-@click.option("-v", "--verbose", is_flag=True, help="verbose mode.")
-@click.option("-f", "--force", is_flag=True, help="force FMU generation even if file exists.")
-def mo2fmuCLI(
+@click.option("-v", "--verbose", is_flag=True, help="Enable verbose output.")
+@click.option("-f", "--force", is_flag=True, help="Overwrite existing FMU.")
+def compileCmd(
     mo: str,
     outdir: str,
+    name: Optional[str],
+    load: tuple[str, ...],
+    flags: tuple[str, ...],
+    fmiType: str,
+    fmi_version: str,
+    backend: str,
+    dymola: str,
+    dymola_exec: str,
+    dymola_whl: str,
+    verbose: bool,
+    force: bool,
+) -> None:
+    """Compile a Modelica model to FMU.
+
+    MO: Path to the Modelica model file (.mo)
+
+    OUTDIR: Output directory for the generated FMU
+
+    Examples:
+
+        mo2fmu compile model.mo ./output
+
+        mo2fmu compile -v --force --fmi-version 3 model.mo ./output
+
+        mo2fmu compile --backend openmodelica model.mo ./output
+
+        mo2fmu compile --load package.mo model.mo ./output
+    """
+    # Build Dymola config
+    dymolaConfig = DymolaConfig(
+        root=dymola,
+        executable=dymola_exec,
+        wheel_path=dymola_whl,
+    )
+
+    try:
+        result = compileFmu(
+            mo=mo,
+            outdir=outdir,
+            backend=backend,  # type: ignore
+            fmuModelName=name,
+            load=list(load) if load else None,
+            flags=list(flags) if flags else None,
+            fmiType=fmiType,
+            fmiVersion=fmi_version,
+            verbose=verbose,
+            force=force,
+            dymolaConfig=dymolaConfig,
+        )
+
+        if result.success:
+            click.echo(f"FMU created: {result.fmu_path}")
+        else:
+            click.echo(f"Error: {result.error_message}", err=True)
+            if result.log:
+                click.echo(f"Log:\n{result.log}", err=True)
+            raise SystemExit(1)
+
+    except RuntimeError as e:
+        click.echo(f"Error: {e}", err=True)
+        raise SystemExit(1)
+
+
+@mo2fmuCLI.command("check")
+@click.option(
+    "--dymola",
+    default="/opt/dymola-2025xRefresh1-x86_64/",
+    type=click.Path(),
+    envvar="DYMOLA_ROOT",
+    help="Path to Dymola root directory.",
+)
+@click.option(
+    "--dymola-exec",
+    default="/usr/local/bin/dymola",
+    type=click.Path(),
+    envvar="DYMOLA_EXECUTABLE",
+    help="Path to Dymola executable.",
+)
+@click.option(
+    "--dymola-whl",
+    default="Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl",
+    type=click.Path(),
+    envvar="DYMOLA_WHL",
+    help="Path to Dymola wheel file (relative to Dymola root).",
+)
+@click.option("--json", "asJson", is_flag=True, help="Output results as JSON.")
+def checkCmd(
+    dymola: str,
+    dymola_exec: str,
+    dymola_whl: str,
+    asJson: bool,
+) -> None:
+    """Check availability of Modelica compilers and their FMI support.
+
+    This command checks for Dymola and OpenModelica installations
+    and reports their versions and supported FMI versions.
+
+    Examples:
+
+        mo2fmu check
+
+        mo2fmu check --json
+
+        mo2fmu check --dymola /opt/dymola-2024x
+    """
+    dymolaConfig = DymolaConfig(
+        root=dymola,
+        executable=dymola_exec,
+        wheel_path=dymola_whl,
+    )
+
+    results = checkCompilers(dymolaConfig=dymolaConfig)
+
+    if asJson:
+        import json
+        click.echo(json.dumps(results, indent=2))
+        return
+
+    click.echo("=" * 60)
+    click.echo("mo2fmu Compiler Availability Check")
+    click.echo("=" * 60)
+
+    # Dymola
+    click.echo("\nDymola:")
+    if results["dymola"]["available"]:
+        click.echo("  Status:      Available")
+        click.echo(f"  Version:     {results['dymola']['version'] or 'Unknown'}")
+        fmiVersions = ", ".join(results["dymola"]["fmiSupport"])
+        click.echo(f"  FMI Support: {fmiVersions}")
+    else:
+        click.echo("  Status:      Not available")
+        click.echo("  Hint:        Set DYMOLA_ROOT environment variable or use --dymola option")
+
+    # OpenModelica
+    click.echo("\nOpenModelica:")
+    if results["openmodelica"]["available"]:
+        click.echo("  Status:      Available")
+        click.echo(f"  Version:     {results['openmodelica']['version'] or 'Unknown'}")
+        fmiVersions = ", ".join(results["openmodelica"]["fmiSupport"])
+        click.echo(f"  FMI Support: {fmiVersions}")
+    else:
+        click.echo("  Status:      Not available")
+        click.echo("  Hint:        Install OpenModelica and OMPython (pip install OMPython)")
+
+    click.echo("\n" + "=" * 60)
+
+    # Summary
+    availableCount = sum(1 for c in results.values() if c["available"])
+    if availableCount == 0:
+        click.echo("Warning: No compilers available!")
+        raise SystemExit(1)
+    elif availableCount == 1:
+        compilerName = "Dymola" if results["dymola"]["available"] else "OpenModelica"
+        click.echo(f"Summary: {compilerName} is available for FMU generation.")
+    else:
+        click.echo("Summary: Both compilers are available for FMU generation.")
+
+
+# =============================================================================
+# Legacy CLI entry point (for backward compatibility with old command style)
+# =============================================================================
+
+
+@click.command("mo2fmu-legacy")
+@click.argument("mo", type=str, nargs=1, required=False)
+@click.argument("outdir", type=click.Path(), nargs=1, required=False)
+@click.option("--check", is_flag=True, help="Check compiler availability.")
+@click.option("--fmumodelname", default=None, type=str, help="Custom FMU name.")
+@click.option("--load", default=None, multiple=True, help="Load Modelica packages.")
+@click.option("--flags", default=None, multiple=True, help="Compiler flags.")
+@click.option("--type", default="all", type=click.Choice(["all", "cs", "me", "csSolver"]))
+@click.option("--version", "fmiVersion", default="2", type=click.Choice(["1", "2", "3"]))
+@click.option("--backend", default="auto", type=click.Choice(["dymola", "openmodelica", "auto"]))
+@click.option("--dymola", default="/opt/dymola-2025xRefresh1-x86_64/", type=click.Path())
+@click.option("--dymolapath", default="/usr/local/bin/dymola", type=click.Path())
+@click.option("--dymolawhl", default="Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl")
+@click.option("-v", "--verbose", is_flag=True)
+@click.option("-f", "--force", is_flag=True)
+def mo2fmuLegacyCLI(
+    mo: Optional[str],
+    outdir: Optional[str],
+    check: bool,
     fmumodelname: Optional[str],
-    load: Optional[tuple[str, ...]],
-    flags: Optional[tuple[str, ...]],
+    load: tuple[str, ...],
+    flags: tuple[str, ...],
     type: str,
-    version: str,
+    fmiVersion: str,
+    backend: str,
     dymola: str,
     dymolapath: str,
     dymolawhl: str,
     verbose: bool,
     force: bool,
 ) -> None:
-    """Convert Modelica (.mo) files to Functional Mock-up Units (.fmu).
+    """Legacy CLI for backward compatibility.
 
-    MO: Path to the Modelica model file (.mo)
-    OUTDIR: Output directory for the generated FMU
-
-    Examples:
-        mo2fmu model.mo ./output
-
-        mo2fmu -v --force model.mo ./output
-
-        mo2fmu --load package.mo model.mo ./output
+    .. deprecated::
+        Use 'mo2fmu compile' or 'mo2fmu check' instead.
     """
-    mo2fmu(
-        mo,
-        outdir,
-        fmumodelname,
-        load,
-        flags,
-        type,
-        version,
-        dymola,  # CLI parameter name stays as 'dymola' for backward compatibility
-        dymolapath,
-        dymolawhl,
-        verbose,
-        force,
+    warnings.warn(
+        "Legacy CLI style is deprecated. Use 'mo2fmu compile' or 'mo2fmu check' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    if check:
+        # Invoke check command
+        ctx = click.Context(checkCmd)
+        ctx.invoke(checkCmd, dymola=dymola, dymola_exec=dymolapath, dymola_whl=dymolawhl, asJson=False)
+        return
+
+    if not mo or not outdir:
+        click.echo("Error: MO and OUTDIR arguments required.", err=True)
+        raise SystemExit(1)
+
+    # Invoke compile command
+    ctx = click.Context(compileCmd)
+    ctx.invoke(
+        compileCmd,
+        mo=mo,
+        outdir=outdir,
+        name=fmumodelname,
+        load=load,
+        flags=flags,
+        fmiType=type,
+        fmi_version=fmiVersion,
+        backend=backend,
+        dymola=dymola,
+        dymola_exec=dymolapath,
+        dymola_whl=dymolawhl,
+        verbose=verbose,
+        force=force,
     )

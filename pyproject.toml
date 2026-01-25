@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "feelpp-mo2fmu"
-version = "0.6.0"
-description = "Feel++ modelica to fmu converter package"
+version = "1.0.0"
+description = "Feel++ modelica to fmu converter package with Dymola and OpenModelica support"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
@@ -13,10 +13,10 @@ authors = [
     { name = "Christophe Prud'homme", email = "christophe.prudhomme@cemosis.fr" },
     { name = "Philippe Pinçon", email = "philippe.pincon@cemosis.fr" }
 ]
-keywords = ["modelica", "fmu", "fmi", "dymola", "simulation"]
+keywords = ["modelica", "fmu", "fmi", "dymola", "openmodelica", "simulation"]
 requires-python = ">=3.8.1"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
@@ -47,6 +47,14 @@ Documentation = "https://feelpp.github.io/mo2fmu/"
 
 # Optional dependencies for testing and development.
 [project.optional-dependencies]
+# OpenModelica backend support (alternative to Dymola)
+openmodelica = [
+  "OMPython>=3.4.0",
+]
+# FMU simulation support (for testing Model Exchange with CVODE solver)
+simulation = [
+  "fmpy>=0.3.0",
+]
 test = [
   "pytest>=7.0",
   "pytest-cov>=4.0",
@@ -66,7 +74,7 @@ lint = [
   "isort>=5.12",
 ]
 all = [
-  "feelpp-mo2fmu[test,dev,lint]",
+  "feelpp-mo2fmu[openmodelica,simulation,test,dev,lint]",
 ]
 
 [project.scripts]
