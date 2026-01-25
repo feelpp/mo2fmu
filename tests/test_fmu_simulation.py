@@ -38,6 +38,10 @@ DYMOLA_WHL = os.getenv(
 )
 HAS_DYMOLA = (Path(DYMOLA_PATH) / DYMOLA_WHL).is_file()
 
+# Check if Dymola runtime license is available (needed to run FMUs)
+DYMOLA_RUNTIME_LICENSE = os.getenv("DYMOLA_RUNTIME_LICENSE", "")
+HAS_RUNTIME_LICENSE = bool(DYMOLA_RUNTIME_LICENSE) and Path(DYMOLA_RUNTIME_LICENSE).is_file()
+
 
 def _get_dymola_config() -> DymolaConfig:
     """Get Dymola configuration."""
@@ -55,6 +59,7 @@ def _get_dymola_config() -> DymolaConfig:
 
 @pytest.mark.skipif(not HAS_FMPY, reason="FMPy not available")
 @pytest.mark.skipif(not HAS_DYMOLA, reason="Dymola not available")
+@pytest.mark.skipif(not HAS_RUNTIME_LICENSE, reason="Dymola runtime license not available")
 class TestFmpySimulation:
     """Tests for FMU simulation using FMPy with CVODE solver."""
 
@@ -246,6 +251,7 @@ class TestFmpySimulation:
 
 @pytest.mark.skipif(not HAS_FMPY, reason="FMPy not available")
 @pytest.mark.skipif(not HAS_DYMOLA, reason="Dymola not available")
+@pytest.mark.skipif(not HAS_RUNTIME_LICENSE, reason="Dymola runtime license not available")
 class TestFmpyFmi3Simulation:
     """Tests for FMI 3.0 FMU simulation using FMPy."""
 
@@ -400,6 +406,7 @@ class TestFmpyValidation:
 
 @pytest.mark.skipif(not HAS_FMPY, reason="FMPy not available")
 @pytest.mark.skipif(not HAS_DYMOLA, reason="Dymola not available")
+@pytest.mark.skipif(not HAS_RUNTIME_LICENSE, reason="Dymola runtime license not available")
 class TestBouncingBallSimulation:
     """Tests for bouncing ball model with events using FMPy.
 
