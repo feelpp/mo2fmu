@@ -5,12 +5,16 @@ This module tests the base classes, Dymola compiler, and OpenModelica compiler.
 
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
+from typing import Any
 
 import pytest
 
+from feelpp.mo2fmu import compileFmus
 from feelpp.mo2fmu.compilers.base import (
     CompilationConfig,
+    CompilationRequest,
     CompilationResult,
     FMIType,
     FMIVersion,
@@ -34,6 +38,113 @@ def _check_omc_available() -> bool:
 
 
 HAS_OMC = _check_omc_available()
+
+
+class DummyLogger:
+    """Minimal logger stub for compiler unit tests."""
+
+    def info(self, _message: str) -> None:
+        """Ignore info messages."""
+
+    def warn(self, _message: str) -> None:
+        """Ignore warning messages."""
+
+
+class FakeDymolaInterface:
+    """Small fake of the Dymola Python interface."""
+
+    licenseInfos: list[str] = ["Checked out license features: Standard"]
+    instanceCount = 0
+    closeCount = 0
+    openModels: list[str] = []
+    executeCommands: list[str] = []
+    translatedModels: list[str] = []
+    errorLog = "synthetic error"
+
+    def __init__(self, dymolapath: str, showwindow: bool = False) -> None:
+        self.dymolapath = dymolapath
+        self.showwindow = showwindow
+        self.instanceIndex = FakeDymolaInterface.instanceCount
+        FakeDymolaInterface.instanceCount += 1
+
+    @classmethod
+    def reset(cls, licenseInfos: list[str] | None = None) -> None:
+        """Reset fake session counters."""
+        cls.licenseInfos = licenseInfos or ["Checked out license features: Standard"]
+        cls.instanceCount = 0
+        cls.closeCount = 0
+        cls.openModels = []
+        cls.executeCommands = []
+        cls.translatedModels = []
+
+    def ExecuteCommand(self, command: str) -> bool:
+        FakeDymolaInterface.executeCommands.append(command)
+        return True
+
+    def openModel(self, modelPath: str, changeDirectory: bool = False) -> bool:
+        FakeDymolaInterface.openModels.append(modelPath)
+        return True
+
+    def translateModelFMU(
+        self,
+        fullyQualifiedName: str,
+        modelName: str,
+        fmiVersion: str,
+        fmiType: str,
+    ) -> bool:
+        del fullyQualifiedName, fmiVersion, fmiType
+        FakeDymolaInterface.translatedModels.append(modelName)
+        (Path.cwd() / f"{modelName}.fmu").write_bytes(b"fake-fmu")
+        return True
+
+    def getLastErrorLog(self) -> str:
+        return self.errorLog
+
+    def DymolaLicenseInfo(self) -> str:
+        index = min(self.instanceIndex, len(self.licenseInfos) - 1)
+        return self.licenseInfos[index]
+
+    def close(self) -> None:
+        FakeDymolaInterface.closeCount += 1
+
+    def checkModel(self, *args: Any, **kwargs: Any) -> bool:
+        del args, kwargs
+        return True
+
+    def importFMU(self, _fmuPath: str) -> bool:
+        return True
+
+
+def makeFakeDymolaCompiler(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    licenseInfos: list[str] | None = None,
+    startupRetryTimeout: int = 0,
+    startupRetryInterval: int = 0,
+) -> DymolaCompiler:
+    """Create a Dymola compiler backed by the fake Dymola interface."""
+    wheelPath = tmp_path / "dymola.whl"
+    wheelPath.write_text("fake wheel")
+
+    config = DymolaConfig(
+        root=str(tmp_path),
+        executable="/usr/local/bin/dymola",
+        wheel_path="dymola.whl",
+        startup_retry_timeout=startupRetryTimeout,
+        startup_retry_interval=startupRetryInterval,
+    )
+    compiler = DymolaCompiler(config)
+
+    FakeDymolaInterface.reset(licenseInfos)
+    compiler._interface_loaded = True
+    compiler._dymola_interface = FakeDymolaInterface
+    compiler._create_logger = lambda: DummyLogger()
+    compiler._start_display = lambda: None
+    compiler._stop_display = lambda: None
+    monkeypatch.setattr("feelpp.mo2fmu.compilers.dymola.spd.drop", lambda _name: None)
+    monkeypatch.setattr("feelpp.mo2fmu.compilers.dymola.time.sleep", lambda _seconds: None)
+    return compiler
 
 
 # =============================================================================
@@ -157,6 +268,39 @@ class TestCompilationConfig:
         assert config.verbose is True
 
 
+class TestCompilationRequest:
+    """Tests for CompilationRequest batch helper."""
+
+    def test_create_config_and_model(self, tmp_path: Path) -> None:
+        """Test conversion from batch request to low-level compile objects."""
+        mo_file = tmp_path / "request.mo"
+        mo_file.write_text("model request end request;")
+
+        request = CompilationRequest(
+            mo=mo_file,
+            outdir=tmp_path / "output",
+            fmu_model_name="CustomRequest",
+            load=["PkgA"],
+            flags=["flagA"],
+            fmi_type="me",
+            fmi_version="3",
+            verbose=True,
+            force=True,
+        )
+
+        model = request.createModel()
+        config = request.createConfig()
+
+        assert model.fully_qualified_name == "request"
+        assert config.output_name == "CustomRequest"
+        assert config.packages == ["PkgA"]
+        assert config.flags == ["flagA"]
+        assert config.fmi_type == FMIType.MODEL_EXCHANGE
+        assert config.fmi_version == FMIVersion.FMI_3_0
+        assert config.verbose is True
+        assert config.force is True
+
+
 class TestCompilationResult:
     """Tests for CompilationResult class."""
 
@@ -245,6 +389,203 @@ class TestDymolaCompiler:
 
         assert result.success is False
         assert "not available" in result.error_message.lower()
+
+    def test_compile_many_reuses_single_session(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test batch compilation with one Dymola session."""
+        compiler = makeFakeDymolaCompiler(tmp_path, monkeypatch)
+        workdir = tmp_path / "workdir"
+        workdir.mkdir()
+        monkeypatch.chdir(workdir)
+
+        modelA = tmp_path / "modelA.mo"
+        modelB = tmp_path / "modelB.mo"
+        modelA.write_text("model modelA end modelA;")
+        modelB.write_text("model modelB end modelB;")
+
+        jobs = [
+            (
+                ModelicaModel(modelA),
+                tmp_path / "outA",
+                CompilationConfig(output_name="ModelA", force=True),
+            ),
+            (
+                ModelicaModel(modelB),
+                tmp_path / "outB",
+                CompilationConfig(output_name="ModelB", force=True),
+            ),
+        ]
+
+        results = compiler.compileMany(jobs)
+
+        assert [result.success for result in results] == [True, True]
+        assert FakeDymolaInterface.instanceCount == 1
+        assert FakeDymolaInterface.closeCount == 1
+        assert (tmp_path / "outA" / "ModelA.fmu").is_file()
+        assert (tmp_path / "outB" / "ModelB.fmu").is_file()
+
+    def test_compile_creates_fresh_session_per_call(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test default single-compile behavior remains unchanged."""
+        compiler = makeFakeDymolaCompiler(tmp_path, monkeypatch)
+        workdir = tmp_path / "workdir"
+        workdir.mkdir()
+        monkeypatch.chdir(workdir)
+
+        modelA = tmp_path / "modelA.mo"
+        modelB = tmp_path / "modelB.mo"
+        modelA.write_text("model modelA end modelA;")
+        modelB.write_text("model modelB end modelB;")
+
+        resultA = compiler.compile(
+            ModelicaModel(modelA),
+            tmp_path / "outA",
+            CompilationConfig(output_name="ModelA", force=True),
+        )
+        resultB = compiler.compile(
+            ModelicaModel(modelB),
+            tmp_path / "outB",
+            CompilationConfig(output_name="ModelB", force=True),
+        )
+
+        assert resultA.success is True
+        assert resultB.success is True
+        assert FakeDymolaInterface.instanceCount == 2
+        assert FakeDymolaInterface.closeCount == 2
+
+    def test_compile_retries_when_trial_license_is_reported(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test startup retry when Dymola falls back to a trial license."""
+        compiler = makeFakeDymolaCompiler(
+            tmp_path,
+            monkeypatch,
+            licenseInfos=[
+                "User: Dymola trial version\nLicense status: fallback",
+                "Checked out license features: Standard\nLicense status: License file is correct",
+            ],
+            startupRetryTimeout=1,
+            startupRetryInterval=0,
+        )
+        workdir = tmp_path / "workdir"
+        workdir.mkdir()
+        monkeypatch.chdir(workdir)
+
+        modelA = tmp_path / "modelA.mo"
+        modelA.write_text("model modelA end modelA;")
+
+        result = compiler.compile(
+            ModelicaModel(modelA),
+            tmp_path / "outA",
+            CompilationConfig(output_name="ModelA", force=True),
+        )
+
+        assert result.success is True
+        assert FakeDymolaInterface.instanceCount == 2
+        assert FakeDymolaInterface.closeCount == 2
+
+    def test_compile_fails_when_shareable_license_never_arrives(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test clean failure when no shareable license is available."""
+        compiler = makeFakeDymolaCompiler(
+            tmp_path,
+            monkeypatch,
+            licenseInfos=[
+                "User: Dymola trial version\nMaximum number of shareable license users exceeded",
+            ],
+        )
+
+        modelA = tmp_path / "modelA.mo"
+        modelA.write_text("model modelA end modelA;")
+
+        result = compiler.compile(
+            ModelicaModel(modelA),
+            tmp_path / "outA",
+            CompilationConfig(output_name="ModelA", force=True),
+        )
+
+        assert result.success is False
+        assert result.error_message is not None
+        assert "shareable license" in result.error_message.lower()
+
+    def test_compile_many_returns_structured_failures_when_startup_fails(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test batch mode does not raise when the first session startup fails."""
+        compiler = makeFakeDymolaCompiler(
+            tmp_path,
+            monkeypatch,
+            licenseInfos=[
+                "User: Dymola trial version\nMaximum number of shareable license users exceeded",
+            ],
+        )
+
+        modelA = tmp_path / "modelA.mo"
+        modelB = tmp_path / "modelB.mo"
+        modelA.write_text("model modelA end modelA;")
+        modelB.write_text("model modelB end modelB;")
+
+        results = compiler.compileMany(
+            [
+                (
+                    ModelicaModel(modelA),
+                    tmp_path / "outA",
+                    CompilationConfig(output_name="ModelA", force=True),
+                ),
+                (
+                    ModelicaModel(modelB),
+                    tmp_path / "outB",
+                    CompilationConfig(output_name="ModelB", force=True),
+                ),
+            ]
+        )
+
+        assert [result.success for result in results] == [False, False]
+        assert all(
+            result.error_message and "shareable license" in result.error_message.lower()
+            for result in results
+        )
+
+    def test_compile_fmus_uses_batch_session(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test public batch API delegates to one Dymola session."""
+        compiler = makeFakeDymolaCompiler(tmp_path, monkeypatch)
+        workdir = tmp_path / "workdir"
+        workdir.mkdir()
+        monkeypatch.chdir(workdir)
+        mo2fmuModule = importlib.import_module("feelpp.mo2fmu.mo2fmu")
+        monkeypatch.setattr(mo2fmuModule, "getCompiler", lambda *args, **kwargs: compiler)
+
+        modelA = tmp_path / "modelA.mo"
+        modelB = tmp_path / "modelB.mo"
+        modelA.write_text("model modelA end modelA;")
+        modelB.write_text("model modelB end modelB;")
+
+        results = compileFmus(
+            [
+                CompilationRequest(
+                    mo=modelA,
+                    outdir=tmp_path / "outA",
+                    fmu_model_name="ModelA",
+                    force=True,
+                ),
+                CompilationRequest(
+                    mo=modelB,
+                    outdir=tmp_path / "outB",
+                    fmu_model_name="ModelB",
+                    force=True,
+                ),
+            ],
+            backend="dymola",
+        )
+
+        assert [result.success for result in results] == [True, True]
+        assert FakeDymolaInterface.instanceCount == 1
+        assert FakeDymolaInterface.closeCount == 1
 
 
 # =============================================================================
@@ -605,21 +946,23 @@ class TestGetCompilerFunction:
     def test_auto_no_compilers(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test auto mode when no compilers are available."""
         from feelpp.mo2fmu import getCompiler
+        mo2fmuModule = importlib.import_module("feelpp.mo2fmu.mo2fmu")
 
-        # Set invalid paths
-        monkeypatch.setenv("DYMOLA_ROOT", "/nonexistent/dymola")
-        monkeypatch.setenv("OPENMODELICA_HOME", "/nonexistent/omc")
+        class UnavailableCompiler:
+            """Compiler stub with deterministic unavailability."""
 
-        # Force reload of config
-        dymolaConfig = DymolaConfig(root="/nonexistent/dymola")
-        omcConfig = OpenModelicaConfig(omc_path="/nonexistent/omc")
+            def __init__(self, *args: Any, **kwargs: Any) -> None:
+                del args, kwargs
+
+            @property
+            def is_available(self) -> bool:
+                return False
+
+        monkeypatch.setattr(mo2fmuModule, "DymolaCompiler", UnavailableCompiler)
+        monkeypatch.setattr(mo2fmuModule, "OpenModelicaCompiler", UnavailableCompiler)
 
         with pytest.raises(RuntimeError, match="No Modelica compiler available"):
-            getCompiler(
-                backend="auto",
-                dymolaConfig=dymolaConfig,
-                openModelicaConfig=omcConfig,
-            )
+            getCompiler(backend="auto")
 
     def test_explicit_dymola_unavailable(self) -> None:
         """Test requesting Dymola when not available."""

@@ -98,7 +98,7 @@ filterwarnings = [
   "error",
   "ignore:(ast.Str|Attribute s|ast.NameConstant|ast.Num) is deprecated:DeprecationWarning:_pytest",
   # OMPython uses deprecated pyparsing functions (infixNotation -> infix_notation)
-  "ignore:.*deprecated.*:pyparsing.warnings.PyparsingDeprecationWarning",
+  "ignore:.*deprecated.*:DeprecationWarning:pyparsing.*",
 ]
 
 [tool.ruff]

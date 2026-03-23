@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 
 class FMIType(Enum):
@@ -147,6 +147,41 @@ class CompilationConfig:
             flags=list(flags) if flags else [],
             force=force,
             verbose=verbose,
+        )
+
+
+@dataclass
+class CompilationRequest:
+    """High-level request for compiling a single FMU.
+
+    This is intended for batch workflows that need to keep compiler-specific
+    state alive across multiple FMU exports.
+    """
+
+    mo: Union[str, Path]
+    outdir: Union[str, Path]
+    fmu_model_name: Optional[str] = None
+    load: list[str] = field(default_factory=list)
+    flags: list[str] = field(default_factory=list)
+    fmi_type: str = "all"
+    fmi_version: str = "2"
+    verbose: bool = False
+    force: bool = False
+
+    def createModel(self) -> ModelicaModel:
+        """Create the Modelica model object for this request."""
+        return ModelicaModel(Path(self.mo))
+
+    def createConfig(self) -> CompilationConfig:
+        """Create the low-level compilation config for this request."""
+        return CompilationConfig(
+            fmi_type=FMIType.from_string(self.fmi_type),
+            fmi_version=FMIVersion.from_string(self.fmi_version),
+            output_name=self.fmu_model_name,
+            packages=list(self.load),
+            flags=list(self.flags),
+            force=self.force,
+            verbose=self.verbose,
         )
 
 

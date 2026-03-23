@@ -37,6 +37,7 @@ from importlib.metadata import version as _get_version
 __version__ = _get_version("feelpp-mo2fmu")
 __all__ = [
     "CompilationConfig",
+    "CompilationRequest",
     "CompilationResult",
     "DymolaCompiler",
     "DymolaConfig",
@@ -46,6 +47,7 @@ __all__ = [
     "OpenModelicaConfig",
     "checkCompilers",
     "compileFmu",
+    "compileFmus",
     "getCompiler",
     "get_compiler",
     "mo2fmu",
@@ -55,6 +57,7 @@ __all__ = [
 
 from feelpp.mo2fmu.compilers.base import (
     CompilationConfig,
+    CompilationRequest,
     CompilationResult,
     FMUCompiler,
     ModelicaModel,
@@ -68,6 +71,7 @@ from feelpp.mo2fmu.mo2fmu import (
     # Primary API
     checkCompilers,
     compileFmu,
+    compileFmus,
     # Legacy API (deprecated)
     get_compiler,
     getCompiler,

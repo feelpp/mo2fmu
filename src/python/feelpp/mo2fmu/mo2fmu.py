@@ -16,6 +16,7 @@ import click
 # Import compiler classes
 from feelpp.mo2fmu.compilers.base import (
     CompilationConfig,
+    CompilationRequest,
     CompilationResult,
     FMIType,
     FMIVersion,
@@ -210,6 +211,46 @@ def compileFmu(
 
     # Compile
     return compiler.compile(model, Path(outdir), config)
+
+
+def compileFmus(
+    requests: list[CompilationRequest],
+    backend: Backend = "auto",
+    dymolaConfig: Optional[DymolaConfig] = None,
+    openModelicaConfig: Optional[OpenModelicaConfig] = None,
+) -> list[CompilationResult]:
+    """Compile several Modelica models to FMUs.
+
+    When the Dymola backend is selected, this keeps one Dymola session alive
+    across the whole batch to avoid repeated license checkout/release cycles.
+
+    Args:
+        requests: Per-FMU compilation requests
+        backend: Compiler backend ("dymola", "openmodelica", or "auto")
+        dymolaConfig: Dymola-specific configuration
+        openModelicaConfig: OpenModelica-specific configuration
+
+    Returns:
+        One CompilationResult per request, in the same order
+    """
+    compiler = getCompiler(backend, dymolaConfig, openModelicaConfig)
+    if isinstance(compiler, DymolaCompiler):
+        jobs = [
+            (request.createModel(), Path(request.outdir), request.createConfig())
+            for request in requests
+        ]
+        return compiler.compileMany(jobs)
+
+    results: list[CompilationResult] = []
+    for request in requests:
+        results.append(
+            compiler.compile(
+                request.createModel(),
+                Path(request.outdir),
+                request.createConfig(),
+            )
+        )
+    return results
 
 
 # =============================================================================

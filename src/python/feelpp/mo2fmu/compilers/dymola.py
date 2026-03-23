@@ -9,10 +9,12 @@ import os
 import platform
 import shutil
 import sys
+import time
 import uuid
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Iterator, Optional
 
 import spdlog as spd
 
@@ -40,6 +42,8 @@ class DymolaConfig:
         enable_code_export: Enable code export (license-free FMU execution)
         global_optimizations: Optimization level (0-2)
         linger_time: License release delay in seconds (0 = immediate)
+        startup_retry_timeout: Time to keep retrying when no shareable license is available
+        startup_retry_interval: Delay between startup retries
     """
 
     root: str = "/opt/dymola-2025xRefresh1-x86_64/"
@@ -49,6 +53,8 @@ class DymolaConfig:
     enable_code_export: bool = True
     global_optimizations: int = 2
     linger_time: int = 0
+    startup_retry_timeout: int = 0
+    startup_retry_interval: int = 30
     additional_commands: list[str] = field(default_factory=list)
 
     @classmethod
@@ -58,6 +64,8 @@ class DymolaConfig:
             root=os.getenv("DYMOLA_ROOT", cls.root),
             executable=os.getenv("DYMOLA_EXECUTABLE", cls.executable),
             wheel_path=os.getenv("DYMOLA_WHL", cls.wheel_path),
+            startup_retry_timeout=int(os.getenv("DYMOLA_STARTUP_RETRY_TIMEOUT", "0")),
+            startup_retry_interval=int(os.getenv("DYMOLA_STARTUP_RETRY_INTERVAL", "30")),
         )
 
 
@@ -89,6 +97,10 @@ class DymolaCompiler(FMUCompiler):
         self._vdisplay: Optional[Any] = None
         self._logger: Optional[Any] = None
         self._interface_loaded = False
+        self._activeSession: Optional[Any] = None
+        self._sessionDepth = 0
+        self._loadedPackages: set[str] = set()
+        self._loadedModels: set[str] = set()
 
         # Try to load Dymola interface
         self._load_interface()
@@ -191,6 +203,117 @@ class DymolaCompiler(FMUCompiler):
         }
         return mapping[fmi_type]
 
+    def _licenseUnavailable(self, licenseInfo: Any) -> bool:
+        """Check whether Dymola fell back to a non-shareable license."""
+        licenseText = str(licenseInfo).lower()
+        unavailablePatterns = [
+            "trial version",
+            "shareable license users exceeded",
+            "maximum number of shareable license users exceeded",
+            "license checkout failed",
+        ]
+        return any(pattern in licenseText for pattern in unavailablePatterns)
+
+    def _createSession(self) -> Any:
+        """Start a configured Dymola session, retrying on transient license fallback."""
+        self._start_display()
+        self._setup_environment()
+
+        deadline = None
+        if self._config.startup_retry_timeout > 0:
+            deadline = time.monotonic() + self._config.startup_retry_timeout
+
+        try:
+            while True:
+                dymola = self._dymola_interface(  # type: ignore[misc]
+                    dymolapath=self._config.executable, showwindow=False
+                )
+                licenseInfo = dymola.DymolaLicenseInfo()
+                if not self._licenseUnavailable(licenseInfo):
+                    self._configure_compiler(dymola)
+                    self._loadedPackages.clear()
+                    self._loadedModels.clear()
+                    return dymola
+
+                dymola.close()
+
+                if deadline is None or time.monotonic() >= deadline:
+                    msg = "Dymola shareable license is not available"
+                    raise RuntimeError(f"{msg}.\nLicense info:\n{licenseInfo}")
+
+                time.sleep(self._config.startup_retry_interval)
+        except Exception:
+            self._stop_display()
+            raise
+
+    def _closeSession(self) -> None:
+        """Close the active Dymola session and clear cached state."""
+        if self._activeSession is not None:
+            self._activeSession.close()
+            self._activeSession = None
+        self._loadedPackages.clear()
+        self._loadedModels.clear()
+        self._stop_display()
+
+    @contextmanager
+    def session(self) -> Iterator[DymolaCompiler]:
+        """Keep one Dymola process alive across multiple compile calls."""
+        if not self.is_available:
+            msg = "Dymola is not available. Check DYMOLA_ROOT and wheel path."
+            raise RuntimeError(msg)
+
+        createdSession = False
+        if self._activeSession is None:
+            self._activeSession = self._createSession()
+            createdSession = True
+
+        self._sessionDepth += 1
+        try:
+            yield self
+        finally:
+            self._sessionDepth -= 1
+            if createdSession and self._sessionDepth == 0:
+                self._closeSession()
+
+    def _loadPackage(self, dymola: Any, package: str, verbose: bool) -> None:
+        """Load a package only once per Dymola session."""
+        if package in self._loadedPackages:
+            return
+
+        if verbose:
+            self._logger.info(f"Loading package: {package}")
+        dymola.openModel(package, changeDirectory=False)
+        self._loadedPackages.add(package)
+
+    def _loadModel(self, dymola: Any, model: ModelicaModel) -> None:
+        """Load a model file only once per Dymola session."""
+        modelPath = str(model.path)
+        if modelPath in self._loadedModels:
+            return
+
+        dymola.openModel(modelPath, changeDirectory=False)
+        self._loadedModels.add(modelPath)
+
+    def compileMany(
+        self,
+        jobs: list[tuple[ModelicaModel, Path, CompilationConfig]],
+    ) -> list[CompilationResult]:
+        """Compile several models while reusing one Dymola session."""
+        results: list[CompilationResult] = []
+        try:
+            with self.session():
+                for model, outputDir, config in jobs:
+                    results.append(self.compile(model, outputDir, config))
+        except RuntimeError as ex:
+            return [
+                CompilationResult(
+                    success=False,
+                    error_message=str(ex),
+                )
+                for _model, _outputDir, _config in jobs
+            ]
+        return results
+
     def compile(
         self,
         model: ModelicaModel,
@@ -241,82 +364,82 @@ class DymolaCompiler(FMUCompiler):
         # Create output directory
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Start display server
-        self._start_display()
-        self._setup_environment()
-
-        dymola = None
         try:
-            # Initialize Dymola (interface is guaranteed non-None after is_available check)
-            dymola = self._dymola_interface(  # type: ignore[misc]
-                dymolapath=self._config.executable, showwindow=False
-            )
+            with self.session():
+                dymola = self._activeSession
+                assert dymola is not None
 
-            # Configure compiler
-            self._configure_compiler(dymola)
+                self._logger = logger
 
-            # Load packages
-            for package in config.packages:
+                # Load packages
+                for package in config.packages:
+                    self._loadPackage(dymola, package, config.verbose)
+
+                # Apply custom flags
+                for flag in config.flags:
+                    if config.verbose:
+                        logger.info(f"Applying flag: {flag}")
+                    dymola.ExecuteCommand(flag)
+
+                # Open the model file
+                self._loadModel(dymola, model)
+
+                # Set working directory
+                cwd_posix = str(Path.cwd().as_posix())
+                dymola.ExecuteCommand(f'cd("{cwd_posix}");')
+
                 if config.verbose:
-                    logger.info(f"Loading package: {package}")
-                dymola.openModel(package, changeDirectory=False)
+                    logger.info(f"Compiling {model.fully_qualified_name} to {fmu_name}.fmu")
 
-            # Apply custom flags
-            for flag in config.flags:
-                if config.verbose:
-                    logger.info(f"Applying flag: {flag}")
-                dymola.ExecuteCommand(flag)
+                expected_fmu = Path.cwd() / f"{fmu_name}.fmu"
+                if expected_fmu.is_file():
+                    expected_fmu.unlink()
 
-            # Open the model file
-            dymola.openModel(str(model.path), changeDirectory=False)
-
-            # Set working directory
-            cwd_posix = str(Path.cwd().as_posix())
-            dymola.ExecuteCommand(f'cd("{cwd_posix}");')
-
-            if config.verbose:
-                logger.info(f"Compiling {model.fully_qualified_name} to {fmu_name}.fmu")
-
-            # Translate to FMU
-            result = dymola.translateModelFMU(
-                model.fully_qualified_name,
-                modelName=fmu_name,
-                fmiVersion=config.fmi_version.value,
-                fmiType=self._map_fmi_type(config.fmi_type),
-            )
-
-            if not result:
-                error_log = dymola.getLastErrorLog()
-                license_info = dymola.DymolaLicenseInfo()
-                return CompilationResult(
-                    success=False,
-                    error_message="translateModelFMU returned False",
-                    log=f"Error log:\n{error_log}\n\nLicense info:\n{license_info}",
+                # Translate to FMU
+                result = dymola.translateModelFMU(
+                    model.fully_qualified_name,
+                    modelName=fmu_name,
+                    fmiVersion=config.fmi_version.value,
+                    fmiType=self._map_fmi_type(config.fmi_type),
                 )
 
-            # Verify FMU was created
-            expected_fmu = Path.cwd() / f"{fmu_name}.fmu"
-            if not expected_fmu.is_file():
-                fmus_in_cwd = list(Path.cwd().glob("*.fmu"))
+                if not result:
+                    error_log = dymola.getLastErrorLog()
+                    license_info = dymola.DymolaLicenseInfo()
+                    return CompilationResult(
+                        success=False,
+                        error_message="translateModelFMU returned False",
+                        log=f"Error log:\n{error_log}\n\nLicense info:\n{license_info}",
+                    )
+
+                # Verify FMU was created
+                if not expected_fmu.is_file():
+                    fmus_in_cwd = list(Path.cwd().glob("*.fmu"))
+                    return CompilationResult(
+                        success=False,
+                        error_message=f"Expected FMU '{expected_fmu.name}' not found",
+                        log=f"FMUs in directory: {fmus_in_cwd}",
+                    )
+
+                # Remove existing FMU if force is set
+                if target_fmu.is_file() and config.force:
+                    target_fmu.unlink()
+
+                # Move FMU to output directory
+                dest = shutil.move(str(expected_fmu), str(output_dir))
+
+                if config.verbose:
+                    logger.info(f"FMU successfully generated: {dest}")
+
                 return CompilationResult(
-                    success=False,
-                    error_message=f"Expected FMU '{expected_fmu.name}' not found",
-                    log=f"FMUs in directory: {fmus_in_cwd}",
+                    success=True,
+                    fmu_path=Path(dest),
                 )
 
-            # Remove existing FMU if force is set
-            if target_fmu.is_file() and config.force:
-                target_fmu.unlink()
-
-            # Move FMU to output directory
-            dest = shutil.move(str(expected_fmu), str(output_dir))
-
-            if config.verbose:
-                logger.info(f"FMU successfully generated: {dest}")
-
+        except RuntimeError as ex:
             return CompilationResult(
-                success=True,
-                fmu_path=Path(dest),
+                success=False,
+                error_message=str(ex),
             )
 
         except Exception as ex:
@@ -328,9 +451,7 @@ class DymolaCompiler(FMUCompiler):
             raise
 
         finally:
-            if dymola is not None:
-                dymola.close()
-            self._stop_display()
+            self._logger = None
             spd.drop("Logger")
 
     def check_model(self, model: ModelicaModel, packages: Optional[list[str]] = None) -> bool:
@@ -345,35 +466,24 @@ class DymolaCompiler(FMUCompiler):
         """
         if not self.is_available:
             return False
-
-        self._start_display()
-        self._setup_environment()
-
-        dymola = None
         try:
-            # Interface is guaranteed non-None after is_available check
-            dymola = self._dymola_interface(  # type: ignore[misc]
-                dymolapath=self._config.executable, showwindow=False
-            )
+            with self.session():
+                dymola = self._activeSession
+                assert dymola is not None
 
-            # Load packages
-            if packages:
-                for package in packages:
-                    dymola.openModel(package, changeDirectory=False)
+                # Load packages
+                if packages:
+                    for package in packages:
+                        self._loadPackage(dymola, package, False)
 
-            # Open the model
-            dymola.openModel(str(model.path), changeDirectory=False)
+                # Open the model
+                self._loadModel(dymola, model)
 
-            # Check the model
-            return bool(dymola.checkModel(model.fully_qualified_name))
+                # Check the model
+                return bool(dymola.checkModel(model.fully_qualified_name))
 
         except Exception:
             return False
-
-        finally:
-            if dymola is not None:
-                dymola.close()
-            self._stop_display()
 
     def validate_fmu(self, fmu_path: Path, simulate: bool = True) -> bool:
         """Validate a generated FMU by importing and optionally simulating it.
@@ -387,33 +497,22 @@ class DymolaCompiler(FMUCompiler):
         """
         if not self.is_available:
             return False
-
-        self._start_display()
-        self._setup_environment()
-
-        dymola = None
         try:
-            # Interface is guaranteed non-None after is_available check
-            dymola = self._dymola_interface(  # type: ignore[misc]
-                dymolapath=self._config.executable, showwindow=False
-            )
+            with self.session():
+                dymola = self._activeSession
+                assert dymola is not None
 
-            # Import FMU
-            imported = dymola.importFMU(str(fmu_path))
-            if not imported:
-                return False
+                # Import FMU
+                imported = dymola.importFMU(str(fmu_path))
+                if not imported:
+                    return False
 
-            if simulate:
-                # Get model name from FMU
-                fmu_model = f"{fmu_path.stem}_fmu"
-                return bool(dymola.checkModel(problem=fmu_model, simulate=True))
+                if simulate:
+                    # Get model name from FMU
+                    fmu_model = f"{fmu_path.stem}_fmu"
+                    return bool(dymola.checkModel(problem=fmu_model, simulate=True))
 
-            return True
+                return True
 
         except Exception:
             return False
-
-        finally:
-            if dymola is not None:
-                dymola.close()
-            self._stop_display()

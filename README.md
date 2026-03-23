@@ -68,6 +68,8 @@ export DYMOLA_WHL=Modelica/Library/python_interface/dymola-2025.1-py3-none-any.w
 - `DYMOLA_ROOT`: Path to Dymola installation root directory (default: `/opt/dymola-2025xRefresh1-x86_64/`)
 - `DYMOLA_EXECUTABLE`: Path to Dymola executable binary (default: `/usr/local/bin/dymola`)
 - `DYMOLA_WHL`: Relative path to Dymola Python wheel from DYMOLA_ROOT (default: `Modelica/Library/python_interface/dymola-2025.1-py3-none-any.whl`)
+- `DYMOLA_STARTUP_RETRY_TIMEOUT`: Time in seconds to wait for a shareable Dymola seat before failing (default: `0`)
+- `DYMOLA_STARTUP_RETRY_INTERVAL`: Delay in seconds between startup retries while waiting for a seat (default: `30`)
 
 ### OpenModelica Location
 
@@ -188,7 +190,7 @@ mo2fmu check --dymola /opt/dymola-2024x
 The recommended API provides a clean interface with automatic backend selection:
 
 ```python
-from feelpp.mo2fmu import compileFmu, getCompiler, checkCompilers
+from feelpp.mo2fmu import CompilationRequest, checkCompilers, compileFmu, compileFmus, getCompiler
 
 # Auto-detect and use available compiler
 result = compileFmu("path/to/model.mo", "./output")
@@ -218,6 +220,23 @@ for name, info in available.items():
 compiler = getCompiler("openmodelica")
 if compiler.is_available:
     print(f"Using {compiler.name}")
+
+# Batch compilation with one Dymola session
+requests = [
+    CompilationRequest(
+        mo="path/to/model_a.mo",
+        outdir="./output/a",
+        fmu_model_name="ModelA",
+        force=True,
+    ),
+    CompilationRequest(
+        mo="path/to/model_b.mo",
+        outdir="./output/b",
+        fmu_model_name="ModelB",
+        force=True,
+    ),
+]
+results = compileFmus(requests, backend="dymola")
 ```
 
 ### Using Compiler Classes Directly
