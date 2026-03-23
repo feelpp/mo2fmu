@@ -239,7 +239,8 @@ class DymolaCompiler(FMUCompiler):
 
                 if deadline is None or time.monotonic() >= deadline:
                     msg = "Dymola shareable license is not available"
-                    raise RuntimeError(f"{msg}.\nLicense info:\n{licenseInfo}")
+                    errorMessage = f"{msg}.\nLicense info:\n{licenseInfo}"
+                    raise RuntimeError(errorMessage)
 
                 time.sleep(self._config.startup_retry_interval)
         except Exception:

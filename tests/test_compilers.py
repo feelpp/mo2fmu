@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import importlib
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import pytest
 
@@ -53,13 +53,13 @@ class DummyLogger:
 class FakeDymolaInterface:
     """Small fake of the Dymola Python interface."""
 
-    licenseInfos: list[str] = ["Checked out license features: Standard"]
-    instanceCount = 0
-    closeCount = 0
-    openModels: list[str] = []
-    executeCommands: list[str] = []
-    translatedModels: list[str] = []
-    errorLog = "synthetic error"
+    licenseInfos: ClassVar[list[str]] = ["Checked out license features: Standard"]
+    instanceCount: ClassVar[int] = 0
+    closeCount: ClassVar[int] = 0
+    openModels: ClassVar[list[str]] = []
+    executeCommands: ClassVar[list[str]] = []
+    translatedModels: ClassVar[list[str]] = []
+    errorLog: ClassVar[str] = "synthetic error"
 
     def __init__(self, dymolapath: str, showwindow: bool = False) -> None:
         self.dymolapath = dymolapath
@@ -82,6 +82,7 @@ class FakeDymolaInterface:
         return True
 
     def openModel(self, modelPath: str, changeDirectory: bool = False) -> bool:
+        del changeDirectory
         FakeDymolaInterface.openModels.append(modelPath)
         return True
 
@@ -124,6 +125,13 @@ def makeFakeDymolaCompiler(
     startupRetryInterval: int = 0,
 ) -> DymolaCompiler:
     """Create a Dymola compiler backed by the fake Dymola interface."""
+
+    def createLogger() -> DummyLogger:
+        return DummyLogger()
+
+    def noOp() -> None:
+        return None
+
     wheelPath = tmp_path / "dymola.whl"
     wheelPath.write_text("fake wheel")
 
@@ -139,9 +147,9 @@ def makeFakeDymolaCompiler(
     FakeDymolaInterface.reset(licenseInfos)
     compiler._interface_loaded = True
     compiler._dymola_interface = FakeDymolaInterface
-    compiler._create_logger = lambda: DummyLogger()
-    compiler._start_display = lambda: None
-    compiler._stop_display = lambda: None
+    compiler._create_logger = createLogger
+    compiler._start_display = noOp
+    compiler._stop_display = noOp
     monkeypatch.setattr("feelpp.mo2fmu.compilers.dymola.spd.drop", lambda _name: None)
     monkeypatch.setattr("feelpp.mo2fmu.compilers.dymola.time.sleep", lambda _seconds: None)
     return compiler
@@ -558,7 +566,12 @@ class TestDymolaCompiler:
         workdir.mkdir()
         monkeypatch.chdir(workdir)
         mo2fmuModule = importlib.import_module("feelpp.mo2fmu.mo2fmu")
-        monkeypatch.setattr(mo2fmuModule, "getCompiler", lambda *args, **kwargs: compiler)
+
+        def getCompilerStub(*args: Any, **kwargs: Any) -> DymolaCompiler:
+            del args, kwargs
+            return compiler
+
+        monkeypatch.setattr(mo2fmuModule, "getCompiler", getCompilerStub)
 
         modelA = tmp_path / "modelA.mo"
         modelB = tmp_path / "modelB.mo"

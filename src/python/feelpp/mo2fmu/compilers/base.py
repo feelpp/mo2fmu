@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 
 class FMIType(Enum):
@@ -158,8 +158,8 @@ class CompilationRequest:
     state alive across multiple FMU exports.
     """
 
-    mo: Union[str, Path]
-    outdir: Union[str, Path]
+    mo: str | Path
+    outdir: str | Path
     fmu_model_name: Optional[str] = None
     load: list[str] = field(default_factory=list)
     flags: list[str] = field(default_factory=list)
