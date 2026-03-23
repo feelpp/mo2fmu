@@ -281,8 +281,9 @@ class DymolaCompiler(FMUCompiler):
         if package in self._loadedPackages:
             return
 
-        if verbose:
-            self._logger.info(f"Loading package: {package}")
+        logger = self._logger
+        if verbose and logger is not None:
+            logger.info(f"Loading package: {package}")
         dymola.openModel(package, changeDirectory=False)
         self._loadedPackages.add(package)
 
