@@ -14,11 +14,13 @@ The OMPython package provides Python bindings:
 from __future__ import annotations
 
 import contextlib
+import importlib
 import os
 import shutil
 import subprocess
 import tempfile
 import uuid
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
@@ -208,6 +210,41 @@ class OpenModelicaCompiler(FMUCompiler):
 
         return f'version="{fmi_version}", fmuType="{fmi_type}", platforms={platforms}'
 
+    def _getPyparsingDeprecationWarning(self) -> type[Warning] | None:
+        """Return pyparsing's deprecation warning category when available."""
+        try:
+            pyparsingWarnings = importlib.import_module("pyparsing.warnings")
+        except ImportError:
+            return None
+
+        warningCategory = getattr(pyparsingWarnings, "PyparsingDeprecationWarning", None)
+        if isinstance(warningCategory, type) and issubclass(warningCategory, Warning):
+            return warningCategory
+        return None
+
+    def _getOmcSessionClass(self) -> Any:
+        """Import OMPython while suppressing its deprecated pyparsing usage warnings."""
+        warningCategory = self._getPyparsingDeprecationWarning()
+
+        with warnings.catch_warnings():
+            if warningCategory is not None:
+                warnings.filterwarnings(
+                    "ignore",
+                    message=".*deprecated.*",
+                    category=warningCategory,
+                )
+            else:
+                warnings.filterwarnings(
+                    "ignore",
+                    message=".*deprecated.*",
+                    category=DeprecationWarning,
+                    module="pyparsing.*",
+                )
+
+            from OMPython import OMCSessionZMQ
+
+        return OMCSessionZMQ
+
     def _compile_with_ompython(
         self,
         model: ModelicaModel,
@@ -216,7 +253,7 @@ class OpenModelicaCompiler(FMUCompiler):
         logger: Any,
     ) -> CompilationResult:
         """Compile using OMPython session."""
-        from OMPython import OMCSessionZMQ
+        OMCSessionZMQ = self._getOmcSessionClass()
 
         fmu_name = config.output_name or model.model_name
         target_fmu = output_dir / f"{fmu_name}.fmu"
@@ -541,7 +578,7 @@ class OpenModelicaCompiler(FMUCompiler):
         self, model: ModelicaModel, packages: Optional[list[str]] = None
     ) -> bool:
         """Check model using OMPython."""
-        from OMPython import OMCSessionZMQ
+        OMCSessionZMQ = self._getOmcSessionClass()
 
         omc = None
         try:

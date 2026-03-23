@@ -9,6 +9,7 @@ import pytest
 from xvfbwrapper import Xvfb
 
 from feelpp.mo2fmu import compileFmu
+from feelpp.mo2fmu.compilers.base import CompilationResult
 from feelpp.mo2fmu.compilers.dymola import DymolaConfig
 
 
@@ -106,6 +107,42 @@ DYMOLA_WHL = os.getenv(
 HAS_DYMOLA = (Path(DYMOLA_PATH) / DYMOLA_WHL).is_file()
 
 
+def _hasNoShareableLicense(result: CompilationResult) -> bool:
+    """Return True when Dymola fell back to a trial/non-shareable seat."""
+    errorMessage = (result.error_message or "").lower()
+    unavailablePatterns = (
+        "shareable license is not available",
+        "shareable license users exceeded",
+        "maximum number of shareable license users exceeded",
+        "trial license",
+    )
+    return any(pattern in errorMessage for pattern in unavailablePatterns)
+
+
+def _compileWithDymolaOrSkip(
+    *,
+    mo: Path,
+    outdir: Path,
+    fmiType: str,
+    fmiVersion: str,
+    dymolaConfig: DymolaConfig,
+) -> CompilationResult:
+    """Compile with Dymola, skipping the test when no floating seat is available."""
+    result = compileFmu(
+        mo=mo,
+        outdir=outdir,
+        backend="dymola",
+        fmiType=fmiType,
+        fmiVersion=fmiVersion,
+        verbose=True,
+        force=True,
+        dymolaConfig=dymolaConfig,
+    )
+    if _hasNoShareableLicense(result):
+        pytest.skip(f"Dymola compile license not available:\n{result.error_message}")
+    return result
+
+
 @pytest.mark.skipif(not HAS_DYMOLA, reason="Dymola not available in test environment")
 class TestDymolaCompilation:
     """Tests for FMU compilation with Dymola."""
@@ -125,14 +162,11 @@ class TestDymolaCompilation:
         )
 
         # Call compileFmu converter
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=simpleOdeModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="all",
             fmiVersion="2",
-            verbose=True,
-            force=True,
             dymolaConfig=dymolaConfig,
         )
 
@@ -160,14 +194,11 @@ class TestDymolaCompilation:
         )
 
         # Call compileFmu converter
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=odeSinusoidalModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="all",
             fmiVersion="2",
-            verbose=True,
-            force=True,
             dymolaConfig=dymolaConfig,
         )
 
@@ -194,14 +225,11 @@ class TestDymolaCompilation:
         )
 
         # Call compileFmu converter with FMI 3.0
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=simpleOdeModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="cs",
             fmiVersion="3",
-            verbose=True,
-            force=True,
             dymolaConfig=dymolaConfig,
         )
 

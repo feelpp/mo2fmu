@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from feelpp.mo2fmu import compileFmu
+from feelpp.mo2fmu.compilers.base import CompilationResult
 from feelpp.mo2fmu.compilers.dymola import DymolaConfig
 
 
@@ -52,6 +53,41 @@ def _get_dymola_config() -> DymolaConfig:
     )
 
 
+def _hasNoShareableLicense(result: CompilationResult) -> bool:
+    """Return True when Dymola compilation fell back to the trial license."""
+    errorMessage = (result.error_message or "").lower()
+    unavailablePatterns = (
+        "shareable license is not available",
+        "shareable license users exceeded",
+        "maximum number of shareable license users exceeded",
+        "trial license",
+    )
+    return any(pattern in errorMessage for pattern in unavailablePatterns)
+
+
+def _compileWithDymolaOrSkip(
+    *,
+    mo: Path,
+    outdir: Path,
+    fmiType: str,
+    fmiVersion: str,
+) -> CompilationResult:
+    """Compile with Dymola, skipping the test when no floating seat is available."""
+    result = compileFmu(
+        mo=mo,
+        outdir=outdir,
+        backend="dymola",
+        fmiType=fmiType,
+        fmiVersion=fmiVersion,
+        verbose=True,
+        force=True,
+        dymolaConfig=_get_dymola_config(),
+    )
+    if _hasNoShareableLicense(result):
+        pytest.skip(f"Dymola compile license not available:\n{result.error_message}")
+    return result
+
+
 # =============================================================================
 # FMPy Simulation Tests
 # =============================================================================
@@ -69,15 +105,11 @@ class TestFmpySimulation:
 
         # Compile the model to Co-Simulation FMU
         outdir = tmp_path / "output_cs"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=simpleOdeModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="cs",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         assert result.success, f"Compilation failed: {result.error_message}"
@@ -109,15 +141,11 @@ class TestFmpySimulation:
 
         # Compile the model to Model Exchange FMU
         outdir = tmp_path / "output_me"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=simpleOdeModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="me",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         assert result.success, f"Compilation failed: {result.error_message}"
@@ -159,15 +187,11 @@ class TestFmpySimulation:
 
         # Compile to Model Exchange
         outdir = tmp_path / "output_sin_me"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=odeSinusoidalModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="me",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         assert result.success, f"Compilation failed: {result.error_message}"
@@ -198,29 +222,21 @@ class TestFmpySimulation:
 
         # Compile Co-Simulation FMU
         outdir_cs = tmp_path / "output_cs"
-        result_cs = compileFmu(
+        result_cs = _compileWithDymolaOrSkip(
             mo=simpleOdeModel,
             outdir=outdir_cs,
-            backend="dymola",
             fmiType="cs",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
         assert result_cs.success
 
         # Compile Model Exchange FMU
         outdir_me = tmp_path / "output_me"
-        result_me = compileFmu(
+        result_me = _compileWithDymolaOrSkip(
             mo=simpleOdeModel,
             outdir=outdir_me,
-            backend="dymola",
             fmiType="me",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
         assert result_me.success
 
@@ -261,15 +277,11 @@ class TestFmpyFmi3Simulation:
 
         # Compile to FMI 3.0 Model Exchange
         outdir = tmp_path / "output_fmi3_me"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=simpleOdeModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="me",
             fmiVersion="3",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         # FMI 3.0 may not be supported by all Dymola versions
@@ -301,15 +313,11 @@ class TestFmpyFmi3Simulation:
 
         # Compile to FMI 3.0 Co-Simulation
         outdir = tmp_path / "output_fmi3_cs"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=simpleOdeModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="cs",
             fmiVersion="3",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         # FMI 3.0 may not be supported
@@ -344,15 +352,11 @@ class TestFmpyValidation:
 
         # Compile the model
         outdir = tmp_path / "output"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=simpleOdeModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="cs",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         assert result.success
@@ -377,15 +381,11 @@ class TestFmpyValidation:
 
         # Compile the model
         outdir = tmp_path / "output"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=simpleOdeModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="me",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         assert result.success
@@ -420,15 +420,11 @@ class TestBouncingBallSimulation:
     def test_compile_bouncing_ball_fmi2(self, bouncingBallModel: Path, tmp_path: Path) -> None:
         """Test compiling bouncing ball to FMI 2.0."""
         outdir = tmp_path / "output_bb_fmi2"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=bouncingBallModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="me",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         assert result.success, f"Compilation failed: {result.error_message}"
@@ -443,15 +439,11 @@ class TestBouncingBallSimulation:
 
         # Compile to Co-Simulation
         outdir = tmp_path / "output_bb_cs"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=bouncingBallModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="cs",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         assert result.success, f"Compilation failed: {result.error_message}"
@@ -489,15 +481,11 @@ class TestBouncingBallSimulation:
 
         # Compile to Model Exchange
         outdir = tmp_path / "output_bb_me"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=bouncingBallModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="me",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         assert result.success, f"Compilation failed: {result.error_message}"
@@ -535,15 +523,11 @@ class TestBouncingBallSimulation:
 
         # Compile to Co-Simulation (more reliable for event handling)
         outdir = tmp_path / "output_bb_count"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=bouncingBallModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="cs",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         assert result.success
@@ -570,15 +554,11 @@ class TestBouncingBallSimulation:
 
         # Compile to FMI 3.0 Model Exchange
         outdir = tmp_path / "output_bb_fmi3_me"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=bouncingBallModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="me",
             fmiVersion="3",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         # FMI 3.0 may not be supported
@@ -616,15 +596,11 @@ class TestBouncingBallSimulation:
 
         # Compile to FMI 3.0 Co-Simulation
         outdir = tmp_path / "output_bb_fmi3_cs"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=bouncingBallModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="cs",
             fmiVersion="3",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         # FMI 3.0 may not be supported
@@ -653,15 +629,11 @@ class TestBouncingBallSimulation:
 
         # Compile to Model Exchange
         outdir = tmp_path / "output_bb_wind"
-        result = compileFmu(
+        result = _compileWithDymolaOrSkip(
             mo=bouncingBallModel,
             outdir=outdir,
-            backend="dymola",
             fmiType="me",
             fmiVersion="2",
-            verbose=True,
-            force=True,
-            dymolaConfig=_get_dymola_config(),
         )
 
         assert result.success
