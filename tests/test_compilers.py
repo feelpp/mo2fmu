@@ -62,6 +62,7 @@ class FakeDymolaInterface:
     errorLog: ClassVar[str] = "synthetic error"
 
     def __init__(self, dymolapath: str, showwindow: bool = False) -> None:
+        """Create one fake Dymola session instance."""
         self.dymolapath = dymolapath
         self.showwindow = showwindow
         self.instanceIndex = FakeDymolaInterface.instanceCount
@@ -959,6 +960,7 @@ class TestGetCompilerFunction:
     def test_auto_no_compilers(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test auto mode when no compilers are available."""
         from feelpp.mo2fmu import getCompiler
+
         mo2fmuModule = importlib.import_module("feelpp.mo2fmu.mo2fmu")
 
         class UnavailableCompiler:
