@@ -1,6 +1,6 @@
 name: mo2fmu
 title: Modelica to FMU converter
-version: ~
+version: '1.0.0'
 start_page: ROOT:index.adoc
 asciidoc:
   attributes:

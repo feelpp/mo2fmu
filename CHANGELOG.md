@@ -1,9 +1,36 @@
 # Changelog
 
-All notable changes to mo2fmu will be documented in this file.
+All notable changes to `mo2fmu` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+- No unreleased changes yet.
+
+## [1.0.0] - 2026-03-23
+
+### Added
+- Added FMI 3.0 generation support for both Dymola and OpenModelica backends.
+- Added camelCase public Python APIs: `checkCompilers()`, `getCompiler()`, and `compileFmu()`.
+- Added the `mo2fmu compile` and `mo2fmu check` CLI subcommands.
+- Added backward-compatible legacy wrappers that emit deprecation warnings.
+- Added broader test coverage for FMI 2.0 and FMI 3.0, including co-simulation and model-exchange workflows.
+- Added the batch compilation API `compileFmus()` and the `CompilationRequest` data model.
+- Added Dymola batch compilation support that reuses a single session across multiple FMU builds.
+- Added Dymola startup retry configuration for transient floating-license exhaustion.
+
+### Changed
+- Refactored the public API and CLI around the new camelCase naming scheme.
+- Improved backend abstraction and configuration handling for Dymola and OpenModelica.
+- Updated project documentation and packaging metadata for the 1.0 release line.
+- Updated release and versioning documentation to reflect the tag-driven GitHub Actions workflow.
+
+### Fixed
+- Suppressed OMPython `pyparsing` deprecation warnings at import time so pytest runs cleanly when warnings are treated as errors.
+- Updated Dymola integration tests to skip cleanly when no shareable compile license is available instead of failing on CI environment constraints.
+- Tightened type checking, formatting, and test helpers introduced during the Dymola session-management work.
 
 ## [0.6.0] - 2025-11-02
 
@@ -37,18 +64,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reorganized `nav.adoc` with logical section grouping
 
 ### Documentation Coverage
-- ✅ Getting started and installation
-- ✅ CLI reference with all options
-- ✅ Python API with function signatures
-- ✅ Configuration for all platforms
-- ✅ FMI types (CS, ME, all, csSolver)
-- ✅ Package loading and dependencies
-- ✅ Custom Dymola flags
-- ✅ Batch processing examples
-- ✅ CI/CD integration examples
-- ✅ Error handling and debugging
-- ✅ Performance optimization tips
-- ✅ Cross-platform usage
+- Getting started and installation
+- CLI reference with all options
+- Python API with function signatures
+- Configuration for all platforms
+- FMI types (CS, ME, all, csSolver)
+- Package loading and dependencies
+- Custom Dymola flags
+- Batch processing examples
+- CI/CD integration examples
+- Error handling and debugging
+- Performance optimization tips
+- Cross-platform usage
 
 ## [0.5.2] - 2025-10-29
 
@@ -81,12 +108,12 @@ Previous versions available on PyPI.
 This release focuses on comprehensive documentation to help users get started with mo2fmu and use it effectively.
 
 **Highlights:**
-- 📚 Complete documentation rewrite with Antora
-- 📖 10 new documentation pages covering all aspects
-- 💡 20 practical examples from basic to advanced
-- 🔧 Troubleshooting guide for common issues
-- ❓ FAQ with quick answers
-- 🎯 Better navigation and organization
+- Complete documentation rewrite with Antora
+- 10 new documentation pages covering all aspects
+- 20 practical examples from basic to advanced
+- Troubleshooting guide for common issues
+- FAQ with quick answers
+- Better navigation and organization
 
 **Target Users:**
 - New users learning mo2fmu

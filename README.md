@@ -214,7 +214,7 @@ result = compileFmu(
 # Check available compilers
 available = checkCompilers()
 for name, info in available.items():
-    print(f"{name}: available={info['available']}, versions={info.get('fmi_versions', [])}")
+    print(f"{name}: available={info['available']}, fmiSupport={info.get('fmiSupport', [])}")
 
 # Get a specific compiler instance for more control
 compiler = getCompiler("openmodelica")
@@ -282,16 +282,16 @@ The original API is still available for backward compatibility:
 from feelpp.mo2fmu import mo2fmu
 
 mo2fmu(
-    mo_file="path/to/model.mo",
+    mo="path/to/model.mo",
     outdir="path/to/output/dir",
     fmumodelname="MyFMUModel",
-    load=["Modelica", "SomePackage"],
-    flags=["-d=initialization"],
-    fmi_type="cs",
-    fmi_version="2.0",
+    load=("Modelica", "SomePackage"),
+    flags=("-d=initialization",),
+    type="cs",
+    version="2",
     dymola_root="/path/to/dymola/root",
-    dymola_executable="/path/to/dymola/executable",
-    dymola_whl="/path/to/dymola.whl",
+    dymolapath="/path/to/dymola/executable",
+    dymolawhl="path/to/dymola.whl",
     verbose=True,
     force=False,
     backend="dymola",  # or "openmodelica", "auto"
@@ -335,17 +335,28 @@ uv run pytest tests/test_fmu_simulation.py
 
 Our GitHub Actions workflow (`.github/workflows/ci.yml`) includes:
 
-* build_wheel: Python wheel compilation and artifact upload.
-* docs: Builds the Antora site, deploys to GitHub Pages on master.
-* deliver: Docker image build & push to GHCR.
-* release: On tags vX.Y.Z, publishes binaries, wheels, datasets, and creates a GitHub release.
+- `build_wheel`: code-quality checks, Python tests, wheel build, and artifact upload
+- `build_docs`: Antora site build and GitHub Pages deployment on `main`
+- `release`: on tags `vX.Y.Z`, downloads the built wheel, creates a GitHub release, and publishes to PyPI
 
 ## Versioning & Release
 
-Project version is centrally defined in:
+The release being prepared is `1.0.0`.
 
-* docs/antora.yml
-* docs/package.json
+Release metadata is maintained in:
+
+- [`pyproject.toml`](pyproject.toml): Python package version
+- [`CHANGELOG.md`](CHANGELOG.md): release notes
+- [`package.json`](package.json) and [`docs/antora.yml`](docs/antora.yml): documentation metadata
+
+Documentation metadata under `docs/` and `package.json` should be kept aligned when needed, but they are not the authoritative Python package version.
+
+Release process:
+
+1. Update `pyproject.toml` and `CHANGELOG.md`.
+2. Push the release branch to GitHub.
+3. Create and push a tag such as `v1.0.0`.
+4. Let `.github/workflows/ci.yml` run the release job to publish the wheel to GitHub Releases and PyPI.
 
 ## Contributing
 
